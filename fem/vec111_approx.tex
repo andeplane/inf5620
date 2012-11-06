@@ -1,0 +1,127 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+\newcommand{\qqq}{\qquad\qquad\qquad}
+\newcommand{\f}[2]{\frac{#1}{#2}}
+\newcommand{\bs}[1]{$\boldsymbol #1$}
+\newcommand{\bsa}[1]{\boldsymbol #1}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Project 1 - INF5620}
+
+\date{\today}
+\author{Kand. Nr. 31}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegraphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegraphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\section*{Exercise 3}
+We have given the vector $f=(1,1,1)$ and a plane spanned by $\phi_1=(1,0)$ and $\phi_2=(0,1)$. The best approximation $u$ is then given as
+\begin{align*}
+u &= \frac{(f,\phi_1)}{(\phi_1,\phi_1)}\phi_1 + \frac{(f,\phi_2)}{(\phi_2,\phi_2)}\phi_2\\
+  &= \phi_1+\phi_2 = (1,1)
+\end{align*}
+With the plane spanned by $\psi_1=(2,1)$ and $\psi_2=(1,2)$ we first need to create an orthogonal basis
+\begin{align*}
+  k\tilde \psi_2 &= \psi_2 - \f{(\psi_2,\psi_1}{(\psi_1,\psi_1)}\psi_1\\
+  &= \psi_2 - \f{4}{5}\psi_1 = \f{1}{5}(-3,6)\\
+  \tilde \psi_2 &= (-3,6)
+\end{align*}
+where we dropped the factor $1/5$ for simplicity. The same plane is now spanned by the orthogonal basis $\{\psi_1,\tilde \psi_2\}$, and we can find the projection
+\begin{align*}
+v &= \frac{(f,\psi_1)}{(\psi_1,\psi_1)}\psi_1 + \frac{(f,\tilde\psi_2)}{(\tilde\psi_2,\tilde\psi_2)}\tilde\psi_2\\
+  &= \f{3}{5}\psi_1 + \f{3}{45}\tilde\psi_2 = (1,1)
+\end{align*}
+i.e. the same as we got in the first part. This is expected because it is the same plane or vector space. 
+\end{document}
