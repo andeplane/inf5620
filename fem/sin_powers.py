@@ -15,4 +15,9 @@ for om in Omega:
 	comparison_plot(f, u, om, filename='sin_powers_k='+str(i)+'.pdf')
 	i+=1
 
-# The taylor series of degree 9 is really bad. 
+taylor = kill_high_order_terms(f.series(n=10), 9, x) # n=10 means error should be of order x**10 or less
+
+comparison_plot(f, taylor, Omega[len(Omega) - 1], filename='sin_powers_results/sin_powers_taylor.pdf')
+
+# We can easily see that the taylor expansion is really bad. It uses the derivative at x=0 as weights
+# so the approximation is probably better around x=0 than the least squares.

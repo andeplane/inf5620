@@ -186,6 +186,16 @@ def comparison_plot(f, u, Omega, filename='tmp.pdf',
         axis([xcoor[0], xcoor[-1], ymin, ymax])
     savefig(filename)
 
+def kill_high_order_terms(expr, order, x):
+    low_poly = 0
+    
+    for i in range(1,order+1):
+        coeff = expr.coeff(x**i)
+        if(coeff is not None):
+            low_poly += x**i * coeff
+            
+    return low_poly
+
 if __name__ == '__main__':
     print 'Module file not meant for execution.'
 
