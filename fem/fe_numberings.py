@@ -23,6 +23,7 @@ elements_1.append([3,4])
 print nodes_1
 print elements_1
 
+# In this part, I assume that also the local indices should be ordered right to left
 print "Fixing right-left ordered elements:"
 nodes_2.insert(1,1.6)
 elements_2.append([3,4])
