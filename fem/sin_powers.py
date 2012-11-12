@@ -12,7 +12,7 @@ Omega = [[0,k*pi/2] for k in range(2,13)]
 i=2
 for om in Omega:
 	u = least_squares(f, phi, om)
-	comparison_plot(f, u, om, filename='sin_powers_k='+str(i)+'.pdf')
+	comparison_plot(f, u, om, filename='sin_powers_results/sin_powers_k='+str(i)+'.pdf')
 	i+=1
 
 taylor = kill_high_order_terms(f.series(n=10), 9, x) # n=10 means error should be of order x**10 or less
