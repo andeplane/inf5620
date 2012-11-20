@@ -208,6 +208,7 @@ def assemble(nodes, elements, phi, f, symbolic=True):
         b_e = element_vector(f, phi, Omega_e, symbolic)
         #print 'element', e
         #print b_e
+        
         for r in range(len(elements[e])):
             for s in range(len(elements[e])):
                 A[elements[e][r],elements[e][s]] += A_e[r,s]
@@ -257,6 +258,7 @@ def approximate(f, symbolic=False, d=1, n_e=4,
     if not symbolic:
         xf = np.linspace(Omega[0], Omega[1], 10001)
         U = np.asarray(c)
+        print 'U:',U
         xu, u = u_glob(U, elements, nodes)
         from scitools.std import plot
         plot(xu, u, 'r-',
@@ -402,13 +404,13 @@ def approximate(f, symbolic=False, d=1, n_e=4, numint=None,
 
     print 'nodes:', nodes
     print 'elements:', elements
-    print 'A:\n', A
-    print 'b:\n', b
+    print 'A_real:\n', A
+    print 'b_real:\n', b
     #print sm.latex(A, mode='plain')
     #print sm.latex(b, mode='plain')
 
     c = A.LUsolve(b)
-    print 'c:\n', c
+    print 'c_real:\n', c
     print 'Plain interpolation:'
     x = sm.Symbol('x')
     f = sm.lambdify([x], f, modules='numpy')
@@ -420,12 +422,13 @@ def approximate(f, symbolic=False, d=1, n_e=4, numint=None,
     if not symbolic and filename is not None:
         xf = np.linspace(Omega[0], Omega[1], 10001)
         U = np.asarray(c)
+        print 'U:',U,
         xu, u = u_glob(U, elements, nodes)
-        from scitools.std import plot
+        #from scitools.std import plot
         plot(xu, u, 'r-',
-             xf, f(xf), 'b-',
-             legend=('u', 'f'),
-             savefig=filename)
+             xf, f(xf), 'b-')
+        legend(['u', 'f'])
+        savefig(filename)
 
 
 if __name__ == '__main__':

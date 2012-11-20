@@ -1,0 +1,145 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+\newcommand{\qqq}{\qquad\qquad\qquad}
+\newcommand{\f}[2]{\frac{#1}{#2}}
+\newcommand{\bs}[1]{$\boldsymbol #1$}
+\newcommand{\bsa}[1]{\boldsymbol #1}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Project 1 - INF5620}
+
+\date{\today}
+\author{Kand. Nr. 31}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegraphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegraphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\section*{Exercise 10}
+In this exercise we will look at a finite element approximation of the function $f(x)=\sin(x)$. We will work in the domain $\Omega=[0,\pi]$ and use two P1 elements, each if size $\pi/2$. The local P1 elements are given by the Lagrange polynomials
+\begin{align*}
+  \tilde\phi_0(X) = \frac{1}{2}(1-X)\\
+  \tilde\phi_1(X) = \frac{1}{2}(1+X)
+\end{align*}
+The affine transform is given by
+\begin{align*}
+  x = x_m + \frac{1}{2}hX
+\end{align*}
+where $x_m$ is the midpoint in the interval and $h=\pi/2$. We have the midpoints for the elements $x_m^{e=1}=\pi/4$ and $x_m^{e=2}=3\pi/4$. The jacobi determinants are the same, $\det J = h/2 = \pi/4$. Being general in mind, keeping the $h$ factor, the coefficient matrix is given as
+\begin{align*}
+  \tilde A^(e)_{0,0} &= \int_{-1}^1  \dm X \det J \tilde\phi_0(X)\tilde\phi_0(X)\\
+  &= \frac{h}{2} \int_{-1}^1 \dm X \frac{1}{2}(1-X)\frac{1}{2}(1-X)\\
+  &= \frac{h}{8} \int_{-1}^1 \dm X (1-X)^2 = \frac{h}{24} \Big[(1-X)^3\Big]^1_{-1} = \frac{h}{3}.
+\end{align*}
+Similarly we get that
+\begin{align*}
+  \tilde A^(e)_{1,0} &= A^(e)_{0,1} = \frac{h}{6}\\
+  \tilde A^(e)_{1,1} &= A^(e)_{0,0} = \frac{h}{3},
+\end{align*}
+so it finally looks like
+\begin{align*}
+M' = \left( \begin{array}{cc}
+\frac{h}{3} & \frac{h}{6}\\
+\frac{h}{6} & \frac{h}{3}
+\end{array}
+\right).
+\end{align*}
+The right hand side, the vector $b$, is given as
+\begin{align*}
+  \tilde b_0^{(e)} &= \int_{-1}^1 \dm X f(x(X))\tilde\phi_0(X) \frac{h}{2} \\
+  &= \frac{h}{4}\int_{-1}^1 \dm X \sin(x_m^{e} + \frac{1}{2}hX)(1-X)\\
+  &= 
+\end{align*}
+\end{document}
