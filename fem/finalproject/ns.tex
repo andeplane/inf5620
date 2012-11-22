@@ -1,0 +1,137 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Project 1 - INF5620}
+
+\date{\today}
+\author{Kand. Nr. 31}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegraphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegraphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\section*{The material derivative}
+\begin{align*}
+  \frac{D}{Dt} = \dpart{}{t} + \vec v \cdot \nabla
+\end{align*}
+\section*{Conservation laws}
+Consider a property $L$ that is measureable within a finite volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume or what flows in/out through the boundary. This can be expressed as
+\begin{align*}
+  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\partial \Omega} L\vec v \cdot \vec n \dm A - \int_\Omega Q \dm V,
+\end{align*}
+where $\vec n$ is the normal vector to the boundary pointing outwards, $\vec v$ is the fluid velocity and $Q$ represents the sources or sinks inside the fluid. If we apply the divergence theorem, this becomes
+\begin{align*}
+  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\Omega} \nabla \cdot (L\vec v) \dm V - \int_\Omega Q \dm V,
+\end{align*}
+or simply
+\begin{align*}
+\int_\Omega \Bigg(\dpart{L}{t} + \nabla \cdot (L\vec v) + Q \Bigg)\dm V = 0.
+\end{align*}
+But since the volume $\Omega$ is arbitrary chosen, the integrand must be zero
+\begin{align*}
+  \dpart{L}{t} + \nabla \cdot (L\vec v) + Q = 0.
+\end{align*}
+\section*{Conservation of momentum}
+By using $L=\rho \vec v$, we get the conservation given as
+\begin{align*}
+  \dpart{\rho\vec v}{t} + \nabla \cdot (\rho\vec v\vec v) + \vec Q = 0.
+\end{align*}
+The $Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. The term with $\vec v\vec v$ is a dyad, i.e. a second rank tensor. This then becomes
+\begin{align*}
+  \vec v\dpart{\rho}{t} + \rho\dpart{\vec v}{t} + \vec v\vec v\cdot\nabla \rho + \rho\vec v\nabla\cdot \vec v + \rho\vec v\cdot \nabla \vec v = \vec b.
+\end{align*}
+\end{document}
