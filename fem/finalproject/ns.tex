@@ -3,6 +3,7 @@
 %\usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{graphics}
+\usepackage{bbm}
 \usepackage{enumerate}
 \usepackage{fullpage}
 \usepackage{amsmath}
@@ -55,10 +56,10 @@
 %\usepackage{wrapfig}
 \usepackage{epstopdf}
 
-\title{Project 1 - INF5620}
+\title{A numerical analysis of the Navier Stokes Equations}
 
 \date{\today}
-\author{Kand. Nr. 31}
+\author{Anders Hafreager}
 
 \newenvironment{changemargin}[2]{%
  \begin{list}{}{%
@@ -104,34 +105,163 @@
 %% DOCUMENT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-\section*{The material derivative}
+\maketitle
+\section{Derivation}
+There are many ways to derive the Navier Stokes Equations (NSE). Most of them are equivalent because they simply assume conservation of mass and momentum. This is also the approach we will do here. NSE describes the two most important properties in a fluid, namely the pressure $p$ and velocity field $\vec u$. We will use the notation of the material derivative 
 \begin{align*}
-  \frac{D}{Dt} = \dpart{}{t} + \vec v \cdot \nabla
+  \frac{D}{Dt} = \dpart{}{t} + \vec u \cdot \nabla,
 \end{align*}
-\section*{Conservation laws}
-Consider a property $L$ that is measureable within a finite volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume or what flows in/out through the boundary. This can be expressed as
+and the integral theorems known from vector calculus.
+
+\subsection{Conservation laws}
+Consider a property $L$ that is measureable within a finite, arbitrary volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume or what flows through the boundary. This can be expressed as
 \begin{align*}
-  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\partial \Omega} L\vec v \cdot \vec n \dm A - \int_\Omega Q \dm V,
+  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\partial \Omega} L\vec u \cdot \vec n \dm A - \int_\Omega Q \dm V,
 \end{align*}
-where $\vec n$ is the normal vector to the boundary pointing outwards, $\vec v$ is the fluid velocity and $Q$ represents the sources or sinks inside the fluid. If we apply the divergence theorem, this becomes
+where $\vec n$ is the normal vector to the boundary pointing outwards, $\vec u$ is the fluid velocity and $Q$ represents the sources or sinks inside the fluid. If we apply the divergence theorem, this becomes
 \begin{align*}
-  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\Omega} \nabla \cdot (L\vec v) \dm V - \int_\Omega Q \dm V,
+  \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\Omega} \nabla \cdot (L\vec u) \dm V - \int_\Omega Q \dm V,
 \end{align*}
 or simply
 \begin{align*}
-\int_\Omega \Bigg(\dpart{L}{t} + \nabla \cdot (L\vec v) + Q \Bigg)\dm V = 0.
+\int_\Omega \Bigg(\dpart{L}{t} + \nabla \cdot (L\vec u) + Q \Bigg)\dm V = 0.
 \end{align*}
-But since the volume $\Omega$ is arbitrary chosen, the integrand must be zero
+Since the volume $\Omega$ is arbitrary chosen, the integrand must be zero
+\begin{align}
+  \label{eq:conservation_law}
+  \dpart{L}{t} + \nabla \cdot (L\vec u) + Q = 0.
+\end{align}
+This is the differential form of conservation laws that easily can be applied to any scalar field. It can also be used for vector fields by using dyadic tensors. This will be used to use the conservation law on the momentum $\rho \vec u$.
+\subsection{Conservation of mass}
+By assuming that no mass is created or destroyed, and applying the conservation equation on the mass, we get
 \begin{align*}
-  \dpart{L}{t} + \nabla \cdot (L\vec v) + Q = 0.
+  \dpart{\rho}{t} + \nabla \cdot (\rho\vec u) = 0.
 \end{align*}
-\section*{Conservation of momentum}
-By using $L=\rho \vec v$, we get the conservation given as
+If the fluid is incompressible, we also have $\rho$ as a constant, reducing the above equation to
+\begin{align}
+  \label{eq:incompressible_fluid}
+  \nabla \cdot \vec u = 0,
+\end{align}
+which will play an important part of choice of finite element formulation later on. 
+
+\subsection{Conservation of momentum}
+We apply the conservation law on the momentum per unit volume $\rho\vec u$
 \begin{align*}
-  \dpart{\rho\vec v}{t} + \nabla \cdot (\rho\vec v\vec v) + \vec Q = 0.
+  \dpart{\rho\vec u}{t} + \nabla \cdot (\rho\vec u\vec u) + \vec Q = 0.
 \end{align*}
-The $Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. The term with $\vec v\vec v$ is a dyad, i.e. a second rank tensor. This then becomes
+The $Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. The term with $\vec u\vec u$ is a dyad, i.e. a second rank tensor. This then becomes
 \begin{align*}
-  \vec v\dpart{\rho}{t} + \rho\dpart{\vec v}{t} + \vec v\vec v\cdot\nabla \rho + \rho\vec v\nabla\cdot \vec v + \rho\vec v\cdot \nabla \vec v = \vec b.
+  \vec u\dpart{\rho}{t} + \rho\dpart{\vec u}{t} + \vec u\vec u\cdot\nabla \rho + \rho\vec u\nabla\cdot \vec u + \rho\vec u\cdot \nabla \vec u = \vec b.
 \end{align*}
+Rearranging
+\begin{align*}
+  \vec b &= \vec u\Big(\dpart{\rho}{t} + \vec u\cdot \nabla \rho + \rho\nabla \cdot \vec u \Big) + \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big)\\
+  &= \vec u\Big(\dpart{\rho}{t} + \nabla\cdot(\rho\vec u) \Big) + \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big).
+\end{align*}
+We recognize the first term as the mass conservation equation, which equals to zero, so conservation of momentum reduces to
+\begin{align*}
+  \vec b &= \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big) = \rho\frac{D\vec u}{Dt},
+\end{align*}
+ where we have the material derivative of the fluid velocity multiplied with the density.
+\subsection{The body force}
+The source of momentum inside a volume is caused by body forces $\vec b$, but this again can be divided into different kinds of forces, distant forces like gravity or electrostatic forces, and a stress term (friction and normal forces, i.e. stress forces). By using the stress tensor, the body force can be written as
+\begin{align*}
+  \vec b = \nabla \cdot \vec \sigma + \vec f,
+\end{align*}
+which inserted in the momentum conservation looks like
+\begin{align*}
+  \rho \frac{D\vec u}{D t} = \nabla \cdot \vec \sigma + \vec f,
+\end{align*}
+where $\vec \sigma$ is the stress tensor, and $\vec f$ is the sum of distant forces. The stress tensor is defined in the usual way
+\begin{align*}
+  \vec \sigma &= 
+  \left (
+  \begin{array}{c c c}
+  \sigma_x & \tau_{xy} & \tau_{xz}\\
+  \tau_{yx} & \sigma_{y} & \tau_{yz}\\
+  \tau_{zx} & \tau_{zy} & \sigma{z}
+  \end{array}
+  \right )\\
+  &= -p\mathbbm 1 + \mathbbm T,
+\end{align*}
+where $\mathbbm 1$ is the identity matrix, $p$ is the average pressure
+\begin{align*}
+  p = -\frac{1}{3}(\sigma_x + \sigma_y + \sigma_z),
+\end{align*}
+and $\mathbbm T$ is the deviatoric stress tensor
+\begin{align*}
+  \mathbbm T &= 
+  \left (
+  \begin{array}{c c c}
+  \sigma_x + p & \tau_{xy} & \tau_{xz}\\
+  \tau_{yx} & \sigma_{y} + p & \tau_{yz}\\
+  \tau_{zx} & \tau_{zy} & \sigma{z} + p
+  \end{array}
+  \right ).
+\end{align*}
+The conservation equation now looks like
+\begin{align*}
+  \rho \frac{D\vec u}{D t} = -\nabla p + \nabla\cdot \mathbbm T + \vec f.
+\end{align*}
+This is the Navier Stokes equation in its most general form. There are many degrees of freedom since $\mathbbm T$ can be defined in many different ways depending on the fluid properties. A usual simplification is to assume that the divergence of $\mathbbm T$ is proportional to $\nabla^2 \vec u$ with proportionality constant $\mu$
+\begin{align*}
+  \nabla \cdot \mathbbm T = \mu \nabla^2 \vec u,
+\end{align*}
+where $\mu$ is called viscosity, a sort of friction constant. NSE then looks like
+\begin{align}
+  \rho \frac{D\vec u}{D t} = -\nabla p + \mu\nabla^2 \vec u + \vec f.
+\end{align}
+
+\section{Numerical solution of the incompressible equation}
+In order to solve this with a finite element method, we need to discretize the equation. The only time dependent part of the equation is in the material derivative. We will analyze this with different schemes. We rewrite NSE to
+\begin{align*}
+  \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p \vec u + \vec f - \vec u\cdot \nabla\vec u,
+\end{align*}
+where we have defined the kinematic viscosity $\nu=\mu/\rho$, redifined $\vec f \rightarrow \vec f/\rho$, force per unit volume.
+\subsection{Forward Euler}
+The simplest approach is to apply an explicit scheme for the time derivative
+\begin{align*}
+  \frac{\vec u^{n+1} - \vec u^{n}}{\Delta t} = \nu\nabla^2\vec u^n - \frac{1}{\rho}\nabla p \vec u^n + \vec f - \vec u^n\cdot \nabla\vec u^n,
+\end{align*}
+which we can solve directly for $\vec u^{n+1}$
+\begin{align*}
+  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^n \vec u^n + \Delta t\vec f - \Delta t\vec u^n\cdot \nabla\vec u^n.
+\end{align*}
+With this scheme, we haven't used the fact that $\nabla \cdot \vec u=0$ at all times, so we don't know that $\vec u^{n+1}$ fulfills this requirement. In addition, the pressure $p$ is constant in time. 
+\subsection{A working scheme}
+We can create some degrees of freedom by using the forward euler scheme, but evaluating the pressure at time step $n+1$
+\begin{align*}
+  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} \vec u^n + \Delta t\vec f - \Delta t\vec u^n\cdot \nabla\vec u^n.
+\end{align*}
+It is now possible to choose $\nabla p^{n+1}$ so that $\nabla \cdot \vec u^{n+1} = 0$. We will do this by using a temporary $\vec u^*$ which we define as
+\begin{align*}
+  \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n \vec u^n + \Delta t\vec f - \Delta t\vec u^n\cdot \nabla\vec u^n,
+\end{align*}
+note the factor $\beta$ in the pressure gradient term. We choose a $\delta \vec u$ so that
+\begin{align*}
+  \vec u^{n+1} &= \vec u^* + \delta \vec u\\
+  \delta \vec u &= \vec u^{n+1} - \vec u^*\\
+  &= -\frac{\Delta t}{\rho}\Big(\nabla p^{n+1} - \beta\nabla p^n\Big) = -\frac{\Delta t}{\rho}\nabla \Phi,
+\end{align*}
+where $\Phi = p^{n-1} - \beta p^n$. The incompressibility constraint can now be written as
+\begin{align*}
+  \nabla \cdot \vec u^{n+1} &= \nabla\cdot(\vec u^* + \delta \vec u) = 0,
+\end{align*}
+or equivalently
+\begin{align*}
+  \nabla \cdot \vec u^* &= -\nabla \cdot\delta \vec u.
+\end{align*}
+By using this on our expression for $\delta \vec u$
+\begin{align*}
+  \nabla^2 \Phi = \frac{\rho}{\Delta t}\nabla \cdot \vec u^*. 
+\end{align*}
+This is simply a Poisson equation for $\Phi$ that can be solved since we know $\vec u^*$. After finding $\Phi$, we find
+\begin{align*}
+  \vec u^{n+1} = \vec u^* - \frac{\Delta t}{\rho}\nabla \Phi,
+\end{align*}
+and the pressure
+\begin{align*}
+  \vec p^{n+1} = \Phi + \beta p^n.
+\end{align*}
+
 \end{document}

@@ -1,0 +1,230 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon.
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+\newcommand{\qqq}{\qquad\qquad\qquad}
+\newcommand{\f}[2]{\frac{#1}{#2}}
+\newcommand{\bs}[1]{$\boldsymbol #1$}
+\newcommand{\bsa}[1]{\boldsymbol #1}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Project 1 - INF5620}
+
+\date{\today}
+\author{Kand. Nr. 31}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegravarphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegravarphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+The 1d wave equation looks like
+\begin{align*}
+  u_{tt} = c^2 u_{xx}
+\end{align*}
+\section*{a)}
+We use a finite difference scheme in the time dimension
+\begin{align*}
+  \f{u^{n-1} - 2u^n + u^{n+1}}{\Delta t^2} = c^2u_{xx}
+\end{align*}
+This can be solved for the next time step
+\begin{align*}
+  u^{n+1} = \Delta t^2c^2u_{xx} - u^{n-1} + 2u^n
+\end{align*}
+\section*{c)}
+We rearrange the last equation 
+\begin{align*}
+  u^{n+1} -\Delta t^2c^2u_{xx} + u^{n-1} - 2u^n = \mathcal L(u) = R
+\end{align*}
+We want $R$ to be orthogonal to the vector space $\mathcal V$, so we multiply by a basis function $\varphi_i$ and integrate
+\begin{align*}
+  (R,\varphi_i) &= \int_0^L \dm x R\varphi_i\\
+  &= \int_0^L \dm x \Big[u^{n+1} - 2u^n + u^{n-1} - c^2\Delta t^2 u''\Big]\varphi_i\\
+  &= \int_0^L \dm x u^{n+1}\varphi_i - 2\int_0^L \dm x u^{n}\varphi_i + \int_0^L \dm x u^{n-1}\varphi_i - c^2\Delta t^2\int_0^L \dm x u''\varphi_i,
+\end{align*}
+where we use $u''$ instead of $u_{xx}$. We look at the second derivative term and apply integration by parts
+\begin{align*}
+  \int_0^L \dm x u''\varphi_i = u'\varphi_i\Big|^L_0 - \int_0^L \dm x u'\varphi_i' = -\int_0^L \dm x u'\varphi_i' = -(u',\varphi_i'),
+\end{align*}
+because the boundary terms are zero. We can then write the residual as
+\begin{align*}
+  (R,\varphi_i) &= (u^{n+1},\varphi_i) - 2(u^{n},\varphi_i) + (u^{n-1},\varphi_i) + C^2(u',\varphi_i') = 0
+\end{align*}
+where we have defined $C^2=\Delta t^2c^2$, using that the residual should be orthogonal to all basis vectors and evaluating each $u$ at timestep $n$. By inserting $u=\sum_j c_j \varphi_j$, we get
+\begin{align*}
+  (\sum_j c_j^{n+1}\varphi_j,\varphi_i) &= 2(\sum_j c_j^n\varphi_j,\varphi_i) - (\sum_j c_j^{n-1}\varphi_j,\varphi_i) - C^2(\sum_j c_j^n\varphi_j',\varphi_i').
+\end{align*}
+Since the P1 elements have the property that $u(x_i) = \sum_j c_j \varphi_j(x_i) = c_j\delta_{ij}$, we have
+\begin{align*}
+  c_j^{n+1}(\varphi_j,\varphi_i) &= 2c_j^n(\varphi_j,\varphi_i) - c_j^{n-1}(\varphi_j,\varphi_i) + C^2c_j^n(\varphi_j',\varphi_i').
+\end{align*}
+We recognize this as equation $i$ in the matrix multiplication
+\begin{align*}
+  Mc^{n+1} &= 2Mc^n - Mc^{n-1} + C^2Kc^n,
+\end{align*}
+where $M_{ij} = (\varphi_i,\varphi_j)$ and $K_{ij} = (\varphi_i',\varphi_j')$. With the P1 elements, we then have the $5\times5$ $M$ matrix given as
+\begin{align*}
+  M = \frac{h}{6}\left(
+  \begin{array}{c c c c c}
+  2 & 1 & 0 & 0 & 0\\
+  1 & 4 & 1 & 0 & 0\\
+  0 & 1 & 4 & 1 & 0\\
+  0 & 0 & 1 & 4 & 1\\
+  0 & 0 & 0 & 1 & 2
+  \end{array}
+  \right)
+\end{align*}
+and the $5\times5$ $K$ matrix looks like
+\begin{align*}
+  K = \frac{1}{h}\left(
+  \begin{array}{c c c c c}
+  2 & -1 & 0 & 0 & 0\\
+  -1 & 2 & -1 & 0 & 0\\
+  0 & -1 & 2 & -1 & 0\\
+  0 & 0 & -1 & 2 & -1\\
+  0 & 0 & 0 & -1 & 2
+  \end{array}
+  \right).
+\end{align*}
+\begin{align}
+  \label{eq:weirdscheme}
+  \Big[D_tD_t(u + \f{1}{6}\Delta x^2 D_xD_xu) = c^2D_xD_xu\Big]^n_i
+\end{align}
+\section*{Stability analysis}
+We expand $u$ in a discrete Fourier basis so that
+\begin{align}
+  \label{eq:fourierbasis}
+  u_p^n = \exp\Big[i(kp\Delta x - \tilde \omega n\Delta t)\Big]
+\end{align}
+Writing equation \eqref{eq:weirdscheme} on discretized form
+\begin{align*}
+  6C^2\Big[u_{i-1}^n - 2u_i^n + u_{i+1}^n\Big] &=
+  6(u_i^{n-1} - 2u_i^n + u_i^{n+1})
+   + (
+  u_{i-1}^{n-1} - 2u_{i-1}^n + u_{i-1}^{n+1})\\
+  &\quad-2(
+  u_i^{n-1} - 2u_i^n +u_i^{n+1})
+  + (
+  u_{i+1}^{n-1} - 2u_{i+1}^n + u_{i+1}^{n+1})\\
+  &= 4(u_i^{n-1} - 2u_i^n + u_i^{n+1})
+   + (
+  u_{i-1}^{n-1} - 2u_{i-1}^n + u_{i-1}^{n+1})\\
+  &\quad + (
+  u_{i+1}^{n-1} - 2u_{i+1}^n + u_{i+1}^{n+1})
+\end{align*}
+and inserting \eqref{eq:fourierbasis} into the LHS
+\begin{align*}
+  L.H.S. &=6C^2e^{-i\tilde\omega n \Delta t}\Big[e^{ik(p-1)\Delta x} -2e^{ikp\Delta x} + e^{ik(p+1)\Delta x}\Big]\\
+  &=6C^2e^{i(kp\Delta x - \tilde\omega n \Delta t)}\Big[e^{-ik\Delta x} - 2 + e^{ik\Delta x}\Big]\\
+  &=-24C^2e^{i(kp\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{k\Delta x}{2}\Big)
+\end{align*}
+and into RHS
+\begin{align*}
+  R.H.S &= -16e^{i(kp\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{\tilde \omega\Delta t}{2}\Big) -4e^{i(k(p-1)\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{\tilde \omega\Delta t}{2}\Big)\\
+  &\quad -4e^{i(k(p+1)\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{\tilde \omega\Delta t}{2}\Big)\\
+  &=-4e^{i(kp\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{\tilde\omega\Delta t}{2}\Big)\Big[e^{-ik\Delta x} + 4 + e^{ik\Delta x}\Big]\\
+  &=-8e^{i(kp\Delta x - \tilde\omega n \Delta t)}\sin^2\Big(\frac{\tilde\omega\Delta t}{2}\Big)\Big[\cos\Big(k\Delta x\Big) + 2\Big].
+\end{align*}
+Combining both sides gives
+\begin{align*}
+  \sin^2\Big(\frac{\tilde\omega\Delta t}{2}\Big) &= \frac{3C^2}{\cos(k\Delta x) + 2}\sin^2\Big(\frac{k\Delta x}{2}\Big),
+\end{align*}
+and by square rooting, we get
+\begin{align*}
+  \sin\Big(\frac{\tilde\omega\Delta t}{2}\Big) &= \frac{\sqrt3C}{\Big[\cos(k\Delta x) + 2\Big]^\frac{1}{2}}\sin\Big(\frac{k\Delta x}{2}\Big).
+\end{align*}
+The sine on the right hand side has its maximum values $\pm 1$ when $k\Delta x=(n+1)\pi$. The cosine in the denominator is then $\pm 1$. The worst case scenario is if $\cos(k\Delta x)=-1$, where we have the stability criterion $C\sqrt 3 \leq 1$ giving
+\begin{align*}
+  C \leq \frac{1}{\sqrt 3},
+\end{align*}
+because the sine on the left hand side must evaluate to less than or equal to 1. The solution -1 will not appear since we actually have a sine squared.
+\end{document}
