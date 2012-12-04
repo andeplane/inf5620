@@ -151,16 +151,16 @@ We apply the conservation law on the momentum per unit volume $\rho\vec u$
 \end{align*}
 The $Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. The term with $\vec u\vec u$ is a dyad, i.e. a second rank tensor. This then becomes
 \begin{align*}
-  \vec u\dpart{\rho}{t} + \rho\dpart{\vec u}{t} + \vec u\vec u\cdot\nabla \rho + \rho\vec u\nabla\cdot \vec u + \rho\vec u\cdot \nabla \vec u = \vec b.
+  \vec u\dpart{\rho}{t} + \rho\dpart{\vec u}{t} + \vec u(\vec u\cdot\nabla \rho) + \rho\vec u(\nabla\cdot \vec u) + \rho(\vec u\cdot \nabla) \vec u = \vec b.
 \end{align*}
 Rearranging
 \begin{align*}
-  \vec b &= \vec u\Big(\dpart{\rho}{t} + \vec u\cdot \nabla \rho + \rho\nabla \cdot \vec u \Big) + \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big)\\
-  &= \vec u\Big(\dpart{\rho}{t} + \nabla\cdot(\rho\vec u) \Big) + \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big).
+  \vec b &= \vec u\Big(\dpart{\rho}{t} + \vec u\cdot \nabla \rho + \rho\nabla \cdot \vec u \Big) + \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big)\\
+  &= \vec u\Big(\dpart{\rho}{t} + \nabla\cdot(\rho\vec u) \Big) + \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big).
 \end{align*}
 We recognize the first term as the mass conservation equation, which equals to zero, so conservation of momentum reduces to
 \begin{align*}
-  \vec b &= \rho\Big( \dpart{\vec u}{t} + \vec u\cdot \nabla \vec u \Big) = \rho\frac{D\vec u}{Dt},
+  \vec b &= \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big) = \rho\frac{D\vec u}{Dt},
 \end{align*}
  where we have the material derivative of the fluid velocity multiplied with the density.
 \subsection{The body force}
@@ -217,18 +217,18 @@ where $\mu$ is called viscosity, a sort of friction constant. NSE then looks lik
 \section{Numerical solution of the incompressible equation}
 In order to solve this with a finite element method, we need to discretize the equation. The only time dependent part of the equation is in the material derivative. We will analyze this with different schemes. We rewrite NSE to
 \begin{align*}
-  \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec f - \vec u\cdot \nabla\vec u,
+  \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec f - (\vec u\cdot \nabla)\vec u,
 \end{align*}
 where we have defined the kinematic viscosity $\nu=\mu/\rho$, redifined $\vec f \rightarrow \vec f/\rho$, force per unit volume. We will use a scheme where we can exploit the fact that $\nabla \cdot \vec u = 0$ and manage to calculate $p^{n+1}$.
 \subsection{The classical splitting method}
 We use the Forward Euler method to find an expression for $\vec u^{n+1}$, but we evaluate the pressure also at the time step $n+1$. This will give an extra degree of freedom that we can use to make sure that $\vec u$ behaves as we know it should
 \begin{align*}
-  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} + \Delta t\vec f - \Delta t\vec u^n\cdot \nabla\vec u^n.
+  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n.
 \end{align*}
 It is now possible to choose $\nabla p^{n+1}$ so that $\nabla \cdot \vec u^{n+1} = 0$. We will do this by using a temporary $\vec u^*$ which we define as
 \begin{align}
   \label{eq:ustar}
-  \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n + \Delta t\vec f - \Delta t\vec u^n\cdot \nabla\vec u^n,
+  \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n,
 \end{align}
 note the factor $\beta$ in the pressure gradient term. We choose a $\delta \vec u$ so that
 \begin{align*}
@@ -249,35 +249,51 @@ We use this on our expression for $\delta \vec u$
   \nabla^2 \Phi = \frac{\rho}{\Delta t}\nabla \cdot \vec u^*,
 \end{align*}
 and recognize this as a Poisson equation for $\Phi$ that can be solved since we know $\vec u^*$. We now have everything we need to evolve the system in time where the velocity is given as
-\begin{align*}
+\begin{align}
+  \label{eq:u_next}
   \vec u^{n+1} = \vec u^* - \frac{\Delta t}{\rho}\nabla \Phi,
-\end{align*}
+\end{align}
 and the pressure
-\begin{align*}
+\begin{align}
+  \label{eq:p_next}
   \vec p^{n+1} = \Phi + \beta p^n.
-\end{align*}
+\end{align}
+
 
 \section{A Finite Element Method}
-A popular way to solve the NSE is by using a finite element method. We will work through the details by looking at one part at the time. Assume now that we have given the initial pressure field $p$ and the initial velocity field $\vec u_0$. Following the recipe described above, we start by finding the $\vec u^*$.
+A popular way to solve the NSE is by using a finite element method. We will work through the details by looking at one part at the time. Assume now that we have given the initial pressure field $p$ and the initial velocity field $\vec u_0$. Following the recipe described above, we start by finding the $\vec u^*$. 
 \subsection{Variational form for $\vec u^*$}
 We introduce basis vectors living in the test space $V^{(u)}$, and seek $\vec u^*, \vec u^{n+1} \in V^{(u)}$. We create a variational form of \eqref{eq:ustar} by multiplying by a test vector $v\in V^{(u)}$ and integrate
 \begin{align*}
-  \int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
-  &- \int_\Omega\Delta t\nu\nabla^2\vec u^n\cdot\vec v^{(u)} \dm \Omega\\
-   &+ \int_\Omega\beta\frac{\Delta t}{\rho}\nabla p^n \cdot\vec v^{(u)} \dm \Omega 
-   - \int_\Omega\Delta t\vec f\cdot\vec v^{(u)} \dm \Omega 
-   + \int_\Omega\Delta t\vec u^n\cdot \nabla\vec u^n\cdot\vec v^{(u)} \dm \Omega.
+  \frac{1}{\Delta t}\int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
+  &- \nu\int_\Omega (\nabla^2\vec u^n)\cdot\vec v^{(u)} \dm \Omega\\
+   &+ \frac{\beta}{\rho}\int_\Omega\nabla p^n \cdot\vec v^{(u)} \dm \Omega 
+   - \int_\Omega\vec f\cdot\vec v^{(u)} \dm \Omega 
+   + \int_\Omega(\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega = 0.
 \end{align*}
 By integrating the Laplace term and the pressure term by parts, we get
 \begin{align*}
-  \int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)} &+ \Delta t\nu\nabla\vec u^n\cdot\nabla\vec v^{(u)} - \beta\frac{\Delta t}{\rho}p^n \nabla\cdot\vec v^{(u)}\dm \Omega\\
-   & - \int_\Omega\Delta t\vec f\cdot\vec v^{(u)} \dm \Omega 
-   + \int_\Omega\Delta t\vec u^n\cdot \nabla\vec u^n\cdot\vec v^{(u)} \dm \Omega - \int_{\partial\Omega_{N,u}} (\nabla \vec u^n - p\vec n)\cdot \vec v^{(u)} \dm s
+  \frac{1}{\Delta t}\int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
+  &+ \nu\int_\Omega\nabla\vec u^n\cdot\nabla\vec v^{(u)} \dm \Omega\\
+   &- \frac{\beta}{\rho}\int_\Omega p^n \nabla\cdot\vec v^{(u)} \dm \Omega 
+   - \int_\Omega\vec f\cdot\vec v^{(u)} \dm \Omega 
+   + \int_\Omega (\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega\\
+   &= \int_{\partial\Omega} (\nu\dpart{\vec u}{n} - p\vec n)\cdot\vec v^{(u)} \dm s
 \end{align*}
 \subsection{Variational form for $\Phi$}
 To solve the Poisson equation for $\Phi$, we multiply by a test function $v^{(\Phi)} \in V^{(\Phi)}$ and integrate
 \begin{align*}
   \int_\Omega \nabla^2\Phi v^{(\Phi)} \dm \Omega &= \frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega\\
-  \int_\Omega \nabla\Phi \cdot \nabla v^{(\Phi)} &= \frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega
+  \int_\Omega \nabla\Phi \cdot \nabla v^{(\Phi)} \dm \Omega &= -\frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega + \int_{\partial \Omega_{n,\Phi}} \dpart{\Phi}{n}v^{(\Phi)} \dm s
 \end{align*}
+When we have found $\Phi$ and $\vec u^*$, we can use a variational form of \eqref{eq:u_next}
+\begin{align*}
+  \int_\Omega \vec u^{n+1}\cdot \vec v^{(u)} \dm \Omega = \int_\Omega (\vec u^* - \frac{\Delta t}{\rho}\nabla \Phi)\cdot \vec v^{(u)} \dm \Omega,
+\end{align*}
+similarly for the pressure
+\begin{align*}
+  \int_\Omega p^{n+1}v^{(\Phi)} \dm \Omega = \int_\Omega (\Phi + \beta p^n)v^{(\Phi)} \dm \Omega.
+\end{align*}
+\section{Implementation in FEniCS}
+
 \end{document}
