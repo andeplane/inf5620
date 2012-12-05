@@ -34,7 +34,7 @@
  backgroundcolor=\color{white},
  tabsize=4,
  rulecolor=,
- language=c++, 
+ language=python, 
  basicstyle=\scriptsize,
  upquote=true,
  aboveskip={1.5\baselineskip},
@@ -278,7 +278,7 @@ By integrating the Laplace term and the pressure term by parts, we get
    &- \frac{\beta}{\rho}\int_\Omega p^n \nabla\cdot\vec v^{(u)} \dm \Omega 
    - \int_\Omega\vec f\cdot\vec v^{(u)} \dm \Omega 
    + \int_\Omega (\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega\\
-   &= \int_{\partial\Omega} (\nu\dpart{\vec u}{n} - p\vec n)\cdot\vec v^{(u)} \dm s
+   &= \int_{\partial\Omega_{N,u}} (\nu\dpart{\vec u}{n} - p^n\vec n)\cdot\vec v^{(u)} \dm s
 \end{align*}
 \subsection{Variational form for $\Phi$}
 To solve the Poisson equation for $\Phi$, we multiply by a test function $v^{(\Phi)} \in V^{(\Phi)}$ and integrate
@@ -294,6 +294,35 @@ similarly for the pressure
 \begin{align*}
   \int_\Omega p^{n+1}v^{(\Phi)} \dm \Omega = \int_\Omega (\Phi + \beta p^n)v^{(\Phi)} \dm \Omega.
 \end{align*}
-\section{Implementation in FEniCS}
+\section{Verification}
+So far, we've only looked at finite element theory and how to formulate NSE into a variational form. We will now derive $\textit{Poiseuilles law}$ and implement the above equations to see if we manage to get a solution that agrees with Poiseuilles law. 
+\subsection{Poiseuilles law}
+For a fluid moving in the x-direction, the viscosity coefficient is defined as
+\begin{align*}
+  \frac{F}{A} = \tau = \mu\left|\dpart{u_x}{y}\right|,
+\end{align*}
+a proportional factor that describes the relation between shear stress and the velocity gradient normal to the fluid velocity. If we look at a box of height $h$, length $L$ and depth $d$ (we will assume that we are far away from the walls in the depth-direction), the force in the above equation can be written as
+\begin{align*}
+  F = \mu A \left|\frac{\dm u_x}{\dm y}\right| = \mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+\end{align*}
+We define $y=0$ to be at height $h/2$, in the middle of the box. We assume stationary flow, and this force must exact cancel the force made by a pressure difference at $x=0$ and $x=L$, so that
+\begin{align*}
+  (P_A - P_B)yd = -\mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+\end{align*}
+By integrating, we get
+\begin{align*}
+  -\int_v^0 \dm u_x  &= \frac{(P_A - P_B)}{\mu L}\int_y^{h/2}y'\dm y'\\
+  v(y) &= \frac{(P_A - P_B)}{2\mu L}\left[\frac{h^2}{4}-y^2\right],
+\end{align*}
+which gives the maximum velocity
+\begin{align*}
+  v_{max} = v(0) = \frac{(P_A - P_B)}{8\mu L}h^2.
+\end{align*}
+\subsection{Implementation in FEniCS}
+An implementation can be found in 
 
+\section{Appendices}
+\appendix
+\section{Poiseuilles law in FEniCS}
+%\lstinputlisting{test}
 \end{document}
