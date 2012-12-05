@@ -8,23 +8,15 @@
 \usepackage{fullpage}
 \usepackage{amsmath}
 \usepackage{amsfonts}
-\usepackage{hyperref}
-\usepackage{ifsym}
-\usepackage{parskip}
-\usepackage[numbers,sectionbib]{natbib}
-
-% Egne kommandoer for enklere vektornotasjon
-\renewcommand{\vec}[1]{\mathbf{#1}}
-\renewcommand{\(}{\left(}
-\renewcommand{\)}{\right)}
-%\renewcommand{\>}{\right>}
-%\renewcommand{\<}{\left<}
-\newcommand{\dm}[1]{\text{d}#1}
-\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
-\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
-\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
-\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
-
+\usepackage{biblatex}
+\usepackage[width=.75\textwidth]{caption}
+%\usepackage{hyperref}
+%\usepackage{ifsym}
+%\usepackage{parskip}
+%\usepackage[numbers,sectionbib]{natbib}
+\usepackage{subfig}
+\usepackage{wrapfig}
+\usepackage{epstopdf}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{textcomp}
@@ -44,7 +36,7 @@
  breaklines=true,
  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
  frame=single,
- showtabs=false,
+ showtabs=true,
  showspaces=false,
  showstringspaces=false,
  identifierstyle=\ttfamily,
@@ -52,9 +44,18 @@
  commentstyle=\color[rgb]{0.133,0.545,0.133},
  stringstyle=\color[rgb]{0.627,0.126,0.941},
 }
-\usepackage{subfig}
-%\usepackage{wrapfig}
-\usepackage{epstopdf}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
 
 \title{A numerical analysis of the Navier Stokes Equations}
 
@@ -80,27 +81,14 @@
  \includegraphics[scale = #2]{#3}
  \end{center}
  \end{changemargin}
-\vspace{-10pt}
+  \vspace{-10pt}
   \caption{\textit{#1} }
   \label{#4}
  \end{figure}
  }
  
- \makeatletter
- \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
-\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
-% This does justification (left) of caption.
-\long\def\@makecaption#1#2{%
-  \vskip\abovecaptionskip
-  \sbox\@tempboxa{#1: #2}%
-  \ifdim \wd\@tempboxa >\hsize
-    #1: #2\par
-  \else
-    \global \@minipagefalse
-    \hb@xt@\hsize{\box\@tempboxa\hfil}%
-  \fi
-  \vskip\belowcaptionskip}
-\makeatother
+ \bibliography{references.bib}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% DOCUMENT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -294,35 +282,83 @@ similarly for the pressure
 \begin{align*}
   \int_\Omega p^{n+1}v^{(\Phi)} \dm \Omega = \int_\Omega (\Phi + \beta p^n)v^{(\Phi)} \dm \Omega.
 \end{align*}
+\section{Numerical implementation}
+\subsection{Stability criterion}
+The numerical solution is based on a discretized time derivative, and the stability criterion is given by \cite{ns_numerical_solutions}
+\begin{align*}
+  \Delta t \leq \frac{h^2}{2\nu + Uh},
+\end{align*}
+where $h$ is the minimum element size and $U$ is a characteristic size of the velocity. For water and air, the viscosity is less than $10^{-4}$, so the stability criterion goes like
+\begin{align*}
+  \Delta t \leq \frac{h}{U},
+\end{align*}
+which we will study in more detail later in this report.
+
+
 \section{Verification}
-So far, we've only looked at finite element theory and how to formulate NSE into a variational form. We will now derive $\textit{Poiseuilles law}$ and implement the above equations to see if we manage to get a solution that agrees with Poiseuilles law. 
-\subsection{Poiseuilles law}
-For a fluid moving in the x-direction, the viscosity coefficient is defined as
+So far, we've only looked at finite element theory and how to formulate NSE into a variational form. We will now look at two problems that have analytical solutions that we can compare with. 
+
+\subsection{2 dimensional Hagen-Poiseuille flow}
+We will now look at flow in a 2 dimensional box of length $L$ ($x$-direction) and height $d$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ for simple notation. If we assume that $\partial_x u_x=0$, the NSE looks like
 \begin{align*}
-  \frac{F}{A} = \tau = \mu\left|\dpart{u_x}{y}\right|,
+  \rho\dpart{u}{t} &= -\dpart{p}{x} + \mu\dpartt{u}{y} = -\beta + \mu\dpartt{u}{y}
 \end{align*}
-a proportional factor that describes the relation between shear stress and the velocity gradient normal to the fluid velocity. If we look at a box of height $h$, length $L$ and depth $d$ (we will assume that we are far away from the walls in the depth-direction), the force in the above equation can be written as
+where $\beta = \partial_x p$. If we also assume stationary flow, this reduces to
 \begin{align*}
-  F = \mu A \left|\frac{\dm u_x}{\dm y}\right| = \mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+  \dpartt{u}{y} &= \frac{\beta}{\mu}
 \end{align*}
-We define $y=0$ to be at height $h/2$, in the middle of the box. We assume stationary flow, and this force must exact cancel the force made by a pressure difference at $x=0$ and $x=L$, so that
+which has the solution
 \begin{align*}
-  (P_A - P_B)yd = -\mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+  u(y) = \frac{\beta}{2\mu}y(d-y).
 \end{align*}
-By integrating, we get
+The maximum velocity is found in the middle of the box $y=d/2$
+\begin{align}
+  \label{eq:max_vel}
+  u_{max} = u(d/2) = \frac{\beta}{2\mu}\frac{d^2}{4}.
+\end{align}
+The pressure can be assumed to be linear, so that the gradient is just a constant
 \begin{align*}
-  -\int_v^0 \dm u_x  &= \frac{(P_A - P_B)}{\mu L}\int_y^{h/2}y'\dm y'\\
-  v(y) &= \frac{(P_A - P_B)}{2\mu L}\left[\frac{h^2}{4}-y^2\right],
+  \beta = \frac{P_A-P_B}{L},
 \end{align*}
-which gives the maximum velocity
+which inserted in \eqref{eq:max_vel} gives
 \begin{align*}
-  v_{max} = v(0) = \frac{(P_A - P_B)}{8\mu L}h^2.
+  u_{max} = \frac{(P_A-P_B)}{8\mu L}d^2.
 \end{align*}
-\subsection{Implementation in FEniCS}
-An implementation can be found in 
+
+\section{Numerical results}
+We will compare the theoretical maximum velocity $u_{max}$ with the numerical solution. Our adjustable parameters are
+\begin{itemize}
+\item $\Delta t$ - time step
+\item $\Delta P$ - pressure difference
+\item $\mu$ - viscosity
+\item $L$ - distance between $A$ and $B$ in pressure difference
+\item $d$ - box height
+\end{itemize}
+We will use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in Appendix \ref{ap:a}. We let FEniCS run until we reach a steady and compare the thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we only look at the numerical values.
+
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}[width=4in]{|c|c|c|c|c|c|c|c|}
+      \hline
+      \# & $\Delta p$ & $\mu$ & $L$ & $h$ & Analytical & FEniCS & Error\\ \hline
+      1 & 1 & 1 & 1 & 1 & 0.125 & 0.125 & 0.000\\
+      2 & 2 & 1 & 1 & 1 & 0.250 & 0.250 & 0.000\\
+      3 & 1 & 1 & 1 & 2 & 0.500 & 0.500 & 0.000\\
+      \hline
+    \end{tabular}
+  \caption{Comparison of the analytical and the numerical solution of the pressure driven stationary system.}
+  \label{tab:res_hagen_poiseuille}
+  \end{center}
+\end{table}
+\subsection{Poiseuille flow}
+
+
 
 \section{Appendices}
 \appendix
 \section{Poiseuilles law in FEniCS}
-%\lstinputlisting{test}
+\label{ap:a}
+\lstinputlisting{my_ns.py}
+
+\printbibliography
 \end{document}
