@@ -94,19 +94,36 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \maketitle
+
+\begin{abstract}
+A finite element method for the numerical solution of the incompressible Navier-Stokes equation (NSE) is derived. The method is called Incremental Pressure Correction Scheme (IPCS)\cite{ns_numerical_solutions}, and is an extension of the method of Chorin in 1968\cite{chorin}. We test the numerical stability of the method and compare the results to analytical solutions.
+\end{abstract}
+
+\section{Introduction}
+The physics of fluids has been a major field of study and goes back to the days of ancient Greece \cite{wiki_fluid_mechanics} when the first formulations of fluid beaviour was written
+\begin{quote}
+\textit{"Any object, wholly or partially immersed in a fluid, is buoyed up by a force equal to the weight of the fluid displaced by the object."} - Archimedes of Syracuse.
+\end{quote}
+In modern mathematical language, we write this as 
+\begin{align*}
+  F_{net} = m_bg - \rho V_f g.
+\end{align*}
+After Bernoulli published \textit{Hydrodynamica} (1738), where he introduced a mathematical framework, more complicated systems were available for theoretical study. A large amount of the problems we meet in vector calculus today are named after physicists after being first used on fluid mechanical problems. Lagrange, Euler, Laplace and Poisson are names that every student who touch differential equations probably have heard of. In 1822, Claude Louis Marie Henri Navier derived a set of equations that describe the velocity- and pressure field of a fluid with a term describing the viscosity, called the Navier Stokes equations.\cite{ns_history} These equations have been studied a lot since their first appearance, and are among the most important mathematical tools in modern engineering.\\
+We start by deriving the NSE from conservation of momentum before we look at a few analytically solvable problems that we will use to validate the numerical implementation. The differential equation is then formulated as a variational problem so we can solve it with a finite element method. We will only study the incompressible equation where we assume that $\nabla \cdot u = 0$. 
+ 
 \section{Derivation}
-There are many ways to derive the Navier Stokes Equations (NSE). Most of them are equivalent because they simply assume conservation of mass and momentum. This is also the approach we will do here. NSE describes the two most important properties in a fluid, namely the pressure $p$ and velocity field $\vec u$. We will use the notation of the material derivative 
+There are many ways to derive the NSE. Most of them are equivalent because they simply assume conservation of mass and momentum. NSE describes the two most important properties in a fluid, namely the pressure field $p$ and velocity field $\vec u$. We will use the notation of the material derivative 
 \begin{align*}
   \frac{D}{Dt} = \dpart{}{t} + \vec u \cdot \nabla,
 \end{align*}
-and the integral theorems known from vector calculus.
+and the integral theorems known from vector calculus. In addition, we will work with second order tensors, dyads, which we won't discuss in detail. These expressions will be used directly in the computer program FEniCS\cite{fenics}, where the mathematics are handled.
 
 \subsection{Conservation laws}
-Consider a property $L$ that is measureable within a finite, arbitrary volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume or what flows through the boundary. This can be expressed as
+Consider a property $L$ that is measureable within a finite, arbitrary volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume in addition to what flows through the boundary. This can be expressed as
 \begin{align*}
   \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\partial \Omega} L\vec u \cdot \vec n \dm A - \int_\Omega Q \dm V,
 \end{align*}
-where $\vec n$ is the normal vector to the boundary pointing outwards, $\vec u$ is the fluid velocity and $Q$ represents the sources or sinks inside the fluid. If we apply the divergence theorem, this becomes
+where $\vec n$ is the normal vector to the boundary pointing outwards, $\vec u$ is the fluid velocity and $Q$ represents the sources or sinks inside $\Omega$. If we apply the divergence theorem, this becomes
 \begin{align*}
   \frac{\dm }{\dm t} \int_\Omega L \dm V = -\int_{\Omega} \nabla \cdot (L\vec u) \dm V - \int_\Omega Q \dm V,
 \end{align*}
@@ -119,40 +136,40 @@ Since the volume $\Omega$ is arbitrary chosen, the integrand must be zero
   \label{eq:conservation_law}
   \dpart{L}{t} + \nabla \cdot (L\vec u) + Q = 0.
 \end{align}
-This is the differential form of conservation laws that easily can be applied to any scalar field. It can also be used for vector fields by using dyadic tensors. This will be used to use the conservation law on the momentum $\rho \vec u$.
+This is the differential form of conservation laws that easily can be applied to any scalar field. It can also be used for vector fields where $L\vec u\rightarrow\vec L\vec u$ is a dyadic tensor. This will be used to use the conservation law on the momentum $\rho \vec u$.
 \subsection{Conservation of mass}
-By assuming that no mass is created or destroyed, and applying the conservation equation on the mass, we get
+By assuming that no mass is created or destroyed, we apply the conservation equation on the density
 \begin{align*}
   \dpart{\rho}{t} + \nabla \cdot (\rho\vec u) = 0.
 \end{align*}
-If the fluid is incompressible, we also have $\rho$ as a constant, reducing the above equation to
+If the fluid is incompressible, $\rho$ is a constant, reducing the above equation to
 \begin{align}
   \label{eq:incompressible_fluid}
   \nabla \cdot \vec u = 0,
 \end{align}
-which will play an important part of choice of finite element formulation later on. 
+which will play an important part of choice of finite element formulation later on.
 
 \subsection{Conservation of momentum}
 We apply the conservation law on the momentum per unit volume $\rho\vec u$
 \begin{align*}
   \dpart{\rho\vec u}{t} + \nabla \cdot (\rho\vec u\vec u) + \vec Q = 0.
 \end{align*}
-The $Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. The term with $\vec u\vec u$ is a dyad, i.e. a second rank tensor. This then becomes
+The $\vec Q$ term, the source or sink, is simply the body force, i.e. external forces that we denote by $\vec b$. Writing out the dyadic term gives
 \begin{align*}
-  \vec u\dpart{\rho}{t} + \rho\dpart{\vec u}{t} + \vec u(\vec u\cdot\nabla \rho) + \rho\vec u(\nabla\cdot \vec u) + \rho(\vec u\cdot \nabla) \vec u = \vec b.
+  \vec u\dpart{\rho}{t} + \rho\dpart{\vec u}{t} + \vec u(\vec u\cdot\nabla \rho) + \rho\vec u(\nabla\cdot \vec u) + \rho(\vec u\cdot \nabla) \vec u = \vec b,
 \end{align*}
-Rearranging
+and by rearranging
 \begin{align*}
   \vec b &= \vec u\Big(\dpart{\rho}{t} + \vec u\cdot \nabla \rho + \rho\nabla \cdot \vec u \Big) + \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big)\\
-  &= \vec u\Big(\dpart{\rho}{t} + \nabla\cdot(\rho\vec u) \Big) + \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big).
+  &= \vec u\Big(\dpart{\rho}{t} + \nabla\cdot(\rho\vec u) \Big) + \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big),
 \end{align*}
-We recognize the first term as the mass conservation equation, which equals to zero, so conservation of momentum reduces to
+we recognize the first term as the mass conservation equation, which is equal to zero. Conservation of momentum simply reduces to
 \begin{align*}
   \vec b &= \rho\Big( \dpart{\vec u}{t} + (\vec u\cdot \nabla) \vec u \Big) = \rho\frac{D\vec u}{Dt},
 \end{align*}
- where we have the material derivative of the fluid velocity multiplied with the density.
+where we have the material derivative of the fluid velocity multiplied with the density.
 \subsection{The body force}
-The source of momentum inside a volume is caused by body forces $\vec b$, but this again can be divided into different kinds of forces, distant forces like gravity or electrostatic forces, and a stress term (friction and normal forces, i.e. stress forces). By using the stress tensor, the body force can be written as
+The source of momentum inside a volume is caused by body forces $\vec b$, but these can be divided into different kinds of forces; distant forces like gravity or electrostatic forces and a stress term (friction and normal forces, i.e. stress forces). By using the stress tensor, the body force can be written as
 \begin{align*}
   \vec b = \nabla \cdot \vec \sigma + \vec f,
 \end{align*}
@@ -170,7 +187,7 @@ where $\vec \sigma$ is the stress tensor, and $\vec f$ is the sum of distant for
   \tau_{zx} & \tau_{zy} & \sigma{z}
   \end{array}
   \right )\\
-  &= -p\mathbbm 1 + \mathbbm T,
+  &\equiv -p\mathbbm 1 + \mathbbm T,
 \end{align*}
 where $\mathbbm 1$ is the identity matrix, $p$ is the average pressure
 \begin{align*}
@@ -191,40 +208,72 @@ The conservation equation now looks like
 \begin{align*}
   \rho \frac{D\vec u}{D t} = -\nabla p + \nabla\cdot \mathbbm T + \vec f.
 \end{align*}
-This is the Navier Stokes equation in its most general form. There are many degrees of freedom since $\mathbbm T$ can be defined in many different ways depending on the fluid properties. A usual simplification is to assume that the divergence of $\mathbbm T$ is proportional to $\nabla^2 \vec u$ with proportionality constant $\mu$
+This is the Navier Stokes equation in its most general form. There are many degrees of freedom since $\mathbbm T$ can be defined in different ways depending on the fluid properties. A usual simplification is to assume that the divergence of $\mathbbm T$ is proportional to $\nabla^2 \vec u$ with proportionality constant $\mu$
 \begin{align*}
   \nabla \cdot \mathbbm T = \mu \nabla^2 \vec u,
 \end{align*}
-where $\mu$ is called viscosity, a sort of friction constant. NSE then looks like
+where $\mu$ is called viscosity. NSE then looks like
 \begin{align}
-  \rho \frac{D\vec u}{D t} = -\nabla p + \mu\nabla^2 \vec u + \vec f.
+  \rho \frac{D\vec u}{D t} = -\nabla p + \mu\nabla^2 \vec u + \vec f,
 \end{align}
+and this is the equation we will analyze.
 
+\section{Analytical solutions}
+Different geometries give rise to very different solutions, and there are a few systems that hase a closed form solution. One system of interest is flow in a 2 dimensional canal where we apply a constant pressure gradient in the $x$-direction. Such flows are called \textit{Hagen-Poiseuille flow}. This is a stationary solution where the time derivative $\partial_t \vec u=0$. We can also look at \textit{Starting Couette flow} where there is no pressure gradient, but one of the walls inside the canal suddenly starts to move with a velocity $U$.
+
+\subsection{2 dimensional Hagen-Poiseuille flow}
+We will now look at flow in a 2 dimensional box of length $L$ ($x$-direction) and height $d$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ for simple notation. If we assume that $\partial_x u_x=0$, the NSE looks like
+\begin{align*}
+  \rho\dpart{u}{t} &= -\dpart{p}{x} + \mu\dpartt{u}{y} = -\beta + \mu\dpartt{u}{y}
+\end{align*}
+where $\beta = \partial_x p$. If we also assume stationary flow, this reduces to
+\begin{align*}
+  \dpartt{u}{y} &= \frac{\beta}{\mu}
+\end{align*}
+which has the solution
+\begin{align*}
+  u(y) = \frac{\beta}{2\mu}y(d-y).
+\end{align*}
+The maximum velocity is found in the middle of the box $y=d/2$
+\begin{align}
+  \label{eq:max_vel}
+  u_{max} = u(d/2) = \frac{\beta}{2\mu}\frac{d^2}{4}.
+\end{align}
+The pressure $p$ is linear, so the pressure gradient is a constant
+\begin{align*}
+  \beta = \frac{P_A-P_B}{L},
+\end{align*}
+which inserted in \eqref{eq:max_vel} gives
+\begin{align*}
+  u_{max} = \frac{(P_A-P_B)}{8\mu L}d^2.
+\end{align*}
+\subsection{Starting Couette flow}
 
 
 \section{Numerical solution of the incompressible equation}
-In order to solve this with a finite element method, we need to discretize the equation. The only time dependent part of the equation is in the material derivative. We will analyze this with different schemes. We rewrite NSE to
+In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to work on the time derivative. We rewrite NSE to
 \begin{align*}
   \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec f - (\vec u\cdot \nabla)\vec u,
 \end{align*}
-where we have defined the kinematic viscosity $\nu=\mu/\rho$, redifined $\vec f \rightarrow \vec f/\rho$, force per unit volume. We will use a scheme where we can exploit the fact that $\nabla \cdot \vec u = 0$ and manage to calculate $p^{n+1}$.
+where we have defined the kinematic viscosity $\nu=\mu/\rho$, defined $\vec F = \vec f/\rho$, force per unit volume. We will use a scheme where we can exploit the fact that $\nabla \cdot \vec u = 0$ and manage to calculate $p^{n+1}$.
 \subsection{The classical splitting method}
 We use the Forward Euler method to find an expression for $\vec u^{n+1}$, but we evaluate the pressure also at the time step $n+1$. This will give an extra degree of freedom that we can use to make sure that $\vec u$ behaves as we know it should
-\begin{align*}
+\begin{align}
+  \label{eq:unext}
   \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n.
-\end{align*}
-It is now possible to choose $\nabla p^{n+1}$ so that $\nabla \cdot \vec u^{n+1} = 0$. We will do this by using a temporary $\vec u^*$ which we define as
+\end{align}
+It is now possible to choose $\nabla p^{n+1}$ so that $\nabla \cdot \vec u^{n+1} = 0$. By using a temporary $\vec u^*$ which we define as
 \begin{align}
   \label{eq:ustar}
   \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n,
 \end{align}
-note the factor $\beta$ in the pressure gradient term. We choose a $\delta \vec u$ so that
+note the factor $\beta$ in the pressure gradient term. Think of this as an intermediate solution. We now choose a $\delta \vec u$ so that
 \begin{align*}
   \vec u^{n+1} &= \vec u^* + \delta \vec u\\
   \delta \vec u &= \vec u^{n+1} - \vec u^*\\
-  &= -\frac{\Delta t}{\rho}\Big(\nabla p^{n+1} - \beta\nabla p^n\Big) = -\frac{\Delta t}{\rho}\nabla \Phi,
+  &= -\frac{\Delta t}{\rho}\nabla \Phi,
 \end{align*}
-where $\Phi = p^{n-1} - \beta p^n$. The incompressibility constraint can now be written as
+by subtracting \eqref{eq:ustar} from \eqref{eq:unext}, where $\Phi = p^{n-1} - \beta p^n$. The incompressibility constraint can now be written as
 \begin{align*}
   \nabla \cdot \vec u^{n+1} &= \nabla\cdot(\vec u^* + \delta \vec u) = 0,
 \end{align*}
@@ -232,11 +281,11 @@ or
 \begin{align*}
   \nabla \cdot \vec u^* &= -\nabla \cdot\delta \vec u.
 \end{align*}
-We use this on our expression for $\delta \vec u$
+We apply this on our expression for $\delta \vec u$
 \begin{align*}
   \nabla^2 \Phi = \frac{\rho}{\Delta t}\nabla \cdot \vec u^*,
 \end{align*}
-and recognize this as a Poisson equation for $\Phi$ that can be solved since we know $\vec u^*$. We now have everything we need to evolve the system in time where the velocity is given as
+and recognize this as a Poisson equation for $\Phi$ that is easily solved since we know $\vec u^*$. We now have everything we need to evolve the system in time where the velocity is given as
 \begin{align}
   \label{eq:u_next}
   \vec u^{n+1} = \vec u^* - \frac{\Delta t}{\rho}\nabla \Phi,
@@ -249,7 +298,7 @@ and the pressure
 
 
 \section{A Finite Element Method}
-A popular way to solve the NSE is by using a finite element method. We will work through the details by looking at one part at the time. Assume now that we have given the initial pressure field $p$ and the initial velocity field $\vec u_0$. Following the recipe described above, we start by finding the $\vec u^*$. 
+Assume now that we have given the initial pressure field $p$ and the initial velocity field $\vec u_0$. Following the recipe described above, we start by finding the $\vec u^*$. 
 \subsection{Variational form for $\vec u^*$}
 We introduce basis vectors living in the test space $V^{(u)}$, and seek $\vec u^*, \vec u^{n+1} \in V^{(u)}$. We create a variational form of \eqref{eq:ustar} by multiplying by a test vector $v\in V^{(u)}$ and integrate
 \begin{align*}
@@ -294,39 +343,9 @@ where $h$ is the minimum element size and $U$ is a characteristic size of the ve
 \end{align*}
 which we will study in more detail later in this report.
 
-
 \section{Verification}
-So far, we've only looked at finite element theory and how to formulate NSE into a variational form. We will now look at two problems that have analytical solutions that we can compare with. 
-
 \subsection{2 dimensional Hagen-Poiseuille flow}
-We will now look at flow in a 2 dimensional box of length $L$ ($x$-direction) and height $d$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ for simple notation. If we assume that $\partial_x u_x=0$, the NSE looks like
-\begin{align*}
-  \rho\dpart{u}{t} &= -\dpart{p}{x} + \mu\dpartt{u}{y} = -\beta + \mu\dpartt{u}{y}
-\end{align*}
-where $\beta = \partial_x p$. If we also assume stationary flow, this reduces to
-\begin{align*}
-  \dpartt{u}{y} &= \frac{\beta}{\mu}
-\end{align*}
-which has the solution
-\begin{align*}
-  u(y) = \frac{\beta}{2\mu}y(d-y).
-\end{align*}
-The maximum velocity is found in the middle of the box $y=d/2$
-\begin{align}
-  \label{eq:max_vel}
-  u_{max} = u(d/2) = \frac{\beta}{2\mu}\frac{d^2}{4}.
-\end{align}
-The pressure can be assumed to be linear, so that the gradient is just a constant
-\begin{align*}
-  \beta = \frac{P_A-P_B}{L},
-\end{align*}
-which inserted in \eqref{eq:max_vel} gives
-\begin{align*}
-  u_{max} = \frac{(P_A-P_B)}{8\mu L}d^2.
-\end{align*}
-
-\section{Numerical results}
-We will compare the theoretical maximum velocity $u_{max}$ with the numerical solution. Our adjustable parameters are
+Our adjustable parameters are
 \begin{itemize}
 \item $\Delta t$ - time step
 \item $\Delta P$ - pressure difference
@@ -334,7 +353,7 @@ We will compare the theoretical maximum velocity $u_{max}$ with the numerical so
 \item $L$ - distance between $A$ and $B$ in pressure difference
 \item $d$ - box height
 \end{itemize}
-We will use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in Appendix \ref{ap:a}. We let FEniCS run until we reach a steady and compare the thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we only look at the numerical values.
+We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in Appendix \ref{ap:a}. We let FEniCS run until we reach a steady and compare the maximum thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we will for simplicity only look at the numerical values.
 
 \begin{table}[h!]
   \begin{center}
@@ -350,9 +369,6 @@ We will use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in
   \label{tab:res_hagen_poiseuille}
   \end{center}
 \end{table}
-\subsection{Poiseuille flow}
-
-
 
 \section{Appendices}
 \appendix
