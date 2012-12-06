@@ -2,7 +2,7 @@ from dolfin import *
 import numpy as np
 
 #mesh = UnitSquare(10,10)
-mesh = Rectangle(0,0,2,1,20,20,'left')
+mesh = Rectangle(0,0,2,1,10,10,'left')
 
 # Define function spaces (P2-P1)
 V = VectorFunctionSpace(mesh, "CG", 2)
@@ -21,12 +21,13 @@ n = FacetNormal(mesh)
 # Set parameter values
 dt = 0.01 # Timestep
 T = 40     # Final time
-nu = 0.5 # Kinematic viscosity
+nu = 1.0 # Kinematic viscosity
 rho = 1.0    # Density
 
 p_in = Constant(1.0) # Pressure at x=0
 #p_in = Expression("sin(2*pi*t)", t=0.0)
 p_out = Constant(0.0) # Pressure at x=1
+
 # No slip makes sure that the velocity field is zero at the boundaries
 noslip_1  = DirichletBC(V, (0, 0),
                       "on_boundary && \
@@ -34,7 +35,7 @@ noslip_1  = DirichletBC(V, (0, 0),
 
 noslip_2  = DirichletBC(V, (0, 0),
                       "on_boundary && \
-                       x[1] > 1 - DOLFIN_EPS")
+                       x[1] > 1.0 - DOLFIN_EPS")
 
 # We apply a pressure at x=0, no pressure at 
 inflow  = DirichletBC(Q, p_in, "x[0] < DOLFIN_EPS")
@@ -53,14 +54,14 @@ p1 = Function(Q)
 k = Constant(dt)
 f = Constant((0, 0))
 
-# Tentative velocity step
 U = 0.5*(u0 + u)
 
+# Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(grad(U), grad(v))*dx \
+    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(grad(u0)*u0, v)*dx \
+    + inner(nabla_grad(u0)*u0, v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)
@@ -120,7 +121,6 @@ while t < T + DOLFIN_EPS:
     u_array = u_vec.array()
     print "t =", t
     print "max: ",u_array.max()
-
 
 # Hold plot
 interactive()
