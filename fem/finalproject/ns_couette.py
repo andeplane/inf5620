@@ -1,8 +1,21 @@
 from dolfin import *
 import numpy as np
 
-#mesh = UnitSquare(10,10)
-mesh = Rectangle(0,0,2,1,20,20,'left')
+# Set parameter values
+dt = 0.01 # Timestep
+nu = 1.0 # Kinematic viscosity
+rho = 1.0    # Density
+Lx = 2
+Ly = 1
+Nx = 10
+Ny = 10
+
+Vx0 = 1
+Vy0 = 0
+Vx1 = 0
+Vy1 = 0
+
+mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
 
 # Define function spaces (P2-P1)
 V = VectorFunctionSpace(mesh, "CG", 2)
@@ -18,23 +31,28 @@ q = TestFunction(Q) # Test function for p
 # Normal vector
 n = FacetNormal(mesh)
 
-# Set parameter values
-dt = 0.01 # Timestep
-T = 40     # Final time
-nu = 0.5 # Kinematic viscosity
-rho = 1.0    # Density
-
-p_in = Constant(1.0) # Pressure at x=0
-#p_in = Expression("sin(2*pi*t)", t=0.0)
+p_in = Constant(0.0) # Pressure at x=0
 p_out = Constant(0.0) # Pressure at x=1
-# No slip makes sure that the velocity field is zero at the boundaries
-noslip_1  = DirichletBC(V, (0, 0),
-                      "on_boundary && \
-                       x[1] < DOLFIN_EPS")
 
-noslip_2  = DirichletBC(V, (0, 0),
-                      "on_boundary && \
-                       x[1] > 1 - DOLFIN_EPS")
+def update_mesh(Lx,Ly,Nx,Ny):
+    mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
+    update_boundary_conditions(Vx0,Vy0,Vx1,Vy1)
+
+def update_boundary_conditions(Vx0,Vy0, Vx1, Vy1):
+    noslip_1  = DirichletBC(V, (Vx0, Vy0), u0_boundary_bottom)
+    noslip_2  = DirichletBC(V, (Vx1, Vy1), u0_boundary_top)
+
+def u0_boundary_bottom(x, on_boundary):
+    if on_boundary:
+        return x[1] < DOLFIN_EPS
+
+def u0_boundary_top(x, on_boundary):
+    if on_boundary:
+        return x[1] > Ly - DOLFIN_EPS
+
+# No slip makes sure that the velocity field is zero at the boundaries
+noslip_1  = DirichletBC(V, (1, 0), u0_boundary_bottom)
+noslip_2  = DirichletBC(V, (0, 0), u0_boundary_top)
 
 # We apply a pressure at x=0, no pressure at 
 inflow  = DirichletBC(Q, p_in, "x[0] < DOLFIN_EPS")
@@ -53,14 +71,14 @@ p1 = Function(Q)
 k = Constant(dt)
 f = Constant((0, 0))
 
-# Tentative velocity step
 U = 0.5*(u0 + u)
 
+# Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(grad(U), grad(v))*dx \
+    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(grad(u0)*u0, v)*dx \
+    + inner(nabla_grad(u0)*u0, v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)
@@ -80,16 +98,11 @@ A1 = assemble(a1)
 A2 = assemble(a2)
 A3 = assemble(a3)
 
-# Create files for storing solution
-ufile = File("results/velocity.pvd")
-pfile = File("results/pressure.pvd")
-
 # Time-stepping
-t = dt
-while t < T + DOLFIN_EPS:
-    # Update pressure boundary condition
-    p_in.t = t
+t = 0.0
 
+def step():
+    global t
     # Compute tentative velocity step
     b1 = assemble(L1)
     [bc.apply(A1, b1) for bc in bcu]
@@ -105,22 +118,9 @@ while t < T + DOLFIN_EPS:
     [bc.apply(A3, b3) for bc in bcu]
     solve(A3, u1.vector(), b3, "gmres", "default")
 
-    plot(u1, title="Velocity", rescale=True)
-
-    # Save to file
-    #ufile << u1
-    #pfile << p1
-
     # Move to next time step
     u0.assign(u1)
     p0.assign(p1)
     t += dt
-
-    u_vec = u1.vector()
-    u_array = u_vec.array()
-    print "t =", t
-    print "max: ",u_array.max()
-
-
-# Hold plot
-interactive()
+    
+    return t,u0
