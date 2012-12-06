@@ -106,17 +106,17 @@ The physics of fluids has been a major field of study and goes back to the days 
 \end{quote}
 In modern mathematical language, we write this as 
 \begin{align*}
-  F_{net} = m_bg - \rho V_f g.
+  F_{net} = m_bg - \rho V_f g,
 \end{align*}
-After Bernoulli published \textit{Hydrodynamica} (1738), where he introduced a mathematical framework, more complicated systems were available for theoretical study. A large amount of the problems we meet in vector calculus today are named after physicists after being first used on fluid mechanical problems. Lagrange, Euler, Laplace and Poisson are names that every student who touch differential equations probably have heard of. In 1822, Claude Louis Marie Henri Navier derived a set of equations that describe the velocity- and pressure field of a fluid with a term describing the viscosity, called the Navier Stokes equations.\cite{ns_history} These equations have been studied a lot since their first appearance, and are among the most important mathematical tools in modern engineering.\\
+and the concept is today presented to high school students. Many years later, when Bernoulli published \textit{Hydrodynamica} (1738) more complicated systems were available for theoretical study, because of the mathematical framework he presented. A large amount of the problems we meet in vector calculus today are named after physicists after first being used on fluid mechanics. Lagrange, Euler, Laplace and Poisson are names that every person who touch differential equations probably have heard of. In 1822, Claude Louis Marie Henri Navier derived a set of equations that describe the velocity- and pressure field of a fluid with a term describing the viscosity, called the Navier Stokes equations.\cite{ns_history} These equations have been studied a lot since their first appearance, and are among the most important mathematical tools in modern engineering. One of the six remaining Millennium Prize Problems is about the solution space of NSE\cite{millennium}, and right now, in this very moment, there are quite many computers working on solving the equations. \\
 We start by deriving the NSE from conservation of momentum before we look at a few analytically solvable problems that we will use to validate the numerical implementation. The differential equation is then formulated as a variational problem so we can solve it with a finite element method. We will only study the incompressible equation where we assume that $\nabla \cdot u = 0$. 
  
-\section{Derivation}
-There are many ways to derive the NSE. Most of them are equivalent because they simply assume conservation of mass and momentum. NSE describes the two most important properties in a fluid, namely the pressure field $p$ and velocity field $\vec u$. We will use the notation of the material derivative 
+\section{Derivation of the Navier-Stokes equations}
+There are many ways to derive the NSE, but most of them are equivalent because they simply assume conservation of mass and momentum. NSE describes the two most important properties in a fluid, namely the pressure field $p$ and velocity field $\vec u$. We will use the notation of the material derivative 
 \begin{align*}
   \frac{D}{Dt} = \dpart{}{t} + \vec u \cdot \nabla,
 \end{align*}
-and the integral theorems known from vector calculus. In addition, we will work with second order tensors, dyads, which we won't discuss in detail. These expressions will be used directly in the computer program FEniCS\cite{fenics}, where the mathematics are handled.
+and the integral theorems known from vector calculus. In addition, we will work with second order tensors, dyads, which we won't discuss in detail. These expressions will be used directly in the computer program using FEniCS\cite{fenics}, where the mathematics are handled.
 
 \subsection{Conservation laws}
 Consider a property $L$ that is measureable within a finite, arbitrary volume $\Omega$ with boundary $\partial \Omega$. The rate of change equals the amount that is created/consumed inside the volume in addition to what flows through the boundary. This can be expressed as
@@ -219,10 +219,10 @@ where $\mu$ is called viscosity. NSE then looks like
 and this is the equation we will analyze.
 
 \section{Analytical solutions}
-Different geometries give rise to very different solutions, and there are a few systems that hase a closed form solution. One system of interest is flow in a 2 dimensional canal where we apply a constant pressure gradient in the $x$-direction. Such flows are called \textit{Hagen-Poiseuille flow}. This is a stationary solution where the time derivative $\partial_t \vec u=0$. We can also look at \textit{Starting Couette flow} where there is no pressure gradient, but one of the walls inside the canal suddenly starts to move with a velocity $U$.
+Different geometries give rise to very different solutions, and there are a few systems that hase a closed form solution, or at least a solution formulated as simple sums over basis functions. One system of interest is flow in a 2 dimensional canal where we apply a constant pressure gradient in the $x$-direction. Such flows are called \textit{Hagen-Poiseuille flow}. This is a stationary solution where the time derivative $\partial_t \vec u=0$. We also look at \textit{Starting Couette flow} where there is no pressure gradient, but one of the walls inside the canal instantly accelerates to a velocity $U$.
 
 \subsection{2 dimensional Hagen-Poiseuille flow}
-We will now look at flow in a 2 dimensional box of length $L$ ($x$-direction) and height $d$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ for simple notation. If we assume that $\partial_x u_x=0$, the NSE looks like
+Assume a flow in a 2 dimensional box of length $L$ ($x$-direction) and height $h$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ to simplify the notation. If we assume that $\partial_x u_x=0$, the NSE looks like
 \begin{align*}
   \rho\dpart{u}{t} &= -\dpart{p}{x} + \mu\dpartt{u}{y} = -\beta + \mu\dpartt{u}{y}
 \end{align*}
@@ -232,24 +232,78 @@ where $\beta = \partial_x p$. If we also assume stationary flow, this reduces to
 \end{align*}
 which has the solution
 \begin{align*}
-  u(y) = \frac{\beta}{2\mu}y(d-y).
+  u(y) = \frac{\beta}{2\mu}y(h-y).
 \end{align*}
-The maximum velocity is found in the middle of the box $y=d/2$
+The maximum velocity is found in the middle of the box $y=h/2$
 \begin{align}
   \label{eq:max_vel}
-  u_{max} = u(d/2) = \frac{\beta}{2\mu}\frac{d^2}{4}.
+  u_{max} = u(h/2) = \frac{\beta}{2\mu}\frac{h^2}{4}.
 \end{align}
 The pressure $p$ is linear, so the pressure gradient is a constant
 \begin{align*}
   \beta = \frac{P_A-P_B}{L},
 \end{align*}
 which inserted in \eqref{eq:max_vel} gives
-\begin{align*}
-  u_{max} = \frac{(P_A-P_B)}{8\mu L}d^2.
-\end{align*}
+\begin{align}
+  \label{eq:poiseuille_stationary}
+  u_{max} = \frac{(P_A-P_B)}{8\mu L}h^2.
+\end{align}
 \subsection{Starting Couette flow}
-
-
+We use the same canal as in the Hagen-Poiseuille flow, but we remove the pressure gradient, $\partial_x p=0$. At $t=0$, the velocity field is zero, $\vec u = \vec 0$. Suddenly, at $t>0$, the lower wall (at $y=0$) accelerates instantly to a velocity $U$, applying a friction force on the fluid.
+\subsubsection{Steady state solution}
+Again, the fluid only moves in the $x$-direction. We seek the steady state, $\partial_t u=0$ and remember that the pressure gradient is zero. The NSE takes the form
+\begin{align*}
+  \nu\dpartt{u}{y} = 0,
+\end{align*}
+with solution
+\begin{align}
+  \label{eq:couette_stationary}
+  u = U\left(1 - \frac{y}{h}\right),
+\end{align}
+e.g. a linear velocity profile with no slip at the walls.
+\subsubsection{Time dependent solution}
+We know that as $t\rightarrow\infty$, the system will reach the steady state solution \eqref{eq:couette_stationary}, so we can write the solution as
+\begin{align*}
+  u(y,t) = u_1(y,t) + u_s(y) = u_1(y,t) + U\left(1 - \frac{y}{h}\right),
+\end{align*}
+where $u_1$ is the time dependent (dying) term. It is convenient to work with the difference between $u$ and the steady state
+\begin{align*}
+  u_1(y,t) = u(y,t) - U\left(1 - \frac{y}{h}\right).
+\end{align*}
+We have the same differential equation as in the steady state-flow, but with the time derivative
+\begin{align*}
+  \dpart{u}{t} = \nu\dpartt{u}{y}.
+\end{align*}
+By applying the differential equation on $u_1$, and introducing dimensionless variables $u_1' = u_1/U$, $y' = y/h$ and $t' = \nu t/h^2$, we have
+\begin{align}
+  \label{eq:dimless_couette}
+  \dpart{u_1'}{t'} = \dpartt{u'}{y'},
+\end{align}
+with 
+\begin{align*}
+  u_1'(0,t') &= u_1'(1,t') = 0\\
+  u_1'(y',0) &= y' - 1.
+\end{align*}
+We can separate \eqref{eq:dimless_couette} so that $u_1' = f(y')g(t')$ which gives
+\begin{align*}
+  \frac{g'}{g} = \frac{f''}{f} = -\lambda^2
+\end{align*}
+with solution
+\begin{alignat}{2}
+  g = C\exp(-\lambda^2t') & f = A\sin(\lambda y') + B\cos(\lambda y').
+\end{alignat}
+The boundary conditions gives $B=0$ and $\lambda=n\pi$ with full solution
+\begin{align*}
+  u_1'(y',t') = \sum_{n=1}^\infty A_n \sin\left(n\pi y'\right)\exp\left(-n^2\pi^2t'\right)
+\end{align*}
+where the fourier coefficients are given as
+\begin{align*}
+  A_n = 2\int_{0}^1 (y' - 1)\sin\left(n\pi y'\right) \dm y' = -\frac{2}{n\pi}.
+\end{align*}
+The full solution for $u$ is
+\begin{align}
+  \frac{u}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(-n^2\pi^2 t'\right)
+\end{align}
 \section{Numerical solution of the incompressible equation}
 In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to work on the time derivative. We rewrite NSE to
 \begin{align*}
