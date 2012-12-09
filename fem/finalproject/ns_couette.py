@@ -1,3 +1,6 @@
+#global dt,nu,rho,Lx,Ly,Nx,Ny,Vx0,Vy0,Vx1,Vy1,mesh,V,Q,u,p,v,q,n,p_in,p_out,noslip_1,noslip_2,inflow,outflow,bcu,bcp
+#global u0,u1,p0,p1,k,U,F1, a1,L1,a2,L2,a3,L3,A1,A2,A3,t
+
 from dolfin import *
 import numpy as np
 
@@ -9,6 +12,11 @@ Lx = 1
 Ly = 1
 Nx = 10
 Ny = 10
+
+Vx0 = 1
+Vy0 = 0
+Vx1 = 0
+Vy1 = 0
 
 mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
 
@@ -68,10 +76,10 @@ U = 0.5*(u0 + u)
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
+    + nu*inner(grad(U), grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(nabla_grad(u0)*u0, v)*dx \
+    + inner(grad(u0)*u0, v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)

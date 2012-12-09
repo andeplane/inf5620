@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
+init()
+
 V2 = VectorFunctionSpace(mesh, "CG", 1)
 
 # Extract the mesh coordinates to calculate exact solution
@@ -31,6 +33,7 @@ T = 4
 def run(data):
 	t,u = step()
 	u_array = interpolate(u,V2).vector().array()
+	u_array2 = interpolate(u,V).vector().array()
 
 	avg_error = 0
 

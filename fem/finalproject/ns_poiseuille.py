@@ -76,10 +76,10 @@ U = 0.5*(u0 + u)
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
+    + nu*inner(grad(U), grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(nabla_grad(u0)*u0, v)*dx \
+    + inner(grad(u0)*u0, v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)
