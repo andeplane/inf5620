@@ -1,12 +1,9 @@
-#global dt,nu,rho,Lx,Ly,Nx,Ny,Vx0,Vy0,Vx1,Vy1,mesh,V,Q,u,p,v,q,n,p_in,p_out,noslip_1,noslip_2,inflow,outflow,bcu,bcp
-#global u0,u1,p0,p1,k,U,F1, a1,L1,a2,L2,a3,L3,A1,A2,A3,t
-
 from dolfin import *
 import numpy as np
 
 # Set parameter values
 dt = 0.01 # Timestep
-nu = 1.0 # Kinematic viscosity
+nu = 0.5 # Kinematic viscosity
 rho = 1.0    # Density
 Lx = 1
 Ly = 1
@@ -17,6 +14,9 @@ Vx0 = 1
 Vy0 = 0
 Vx1 = 0
 Vy1 = 0
+
+PA = 1.0
+PB = 0.0
 
 mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
 
@@ -34,8 +34,8 @@ q = TestFunction(Q) # Test function for p
 # Normal vector
 n = FacetNormal(mesh)
 
-p_in = Constant(0.0) # Pressure at x=0
-p_out = Constant(0.0) # Pressure at x=1
+p_in = Constant(PA) # Pressure at x=0
+p_out = Constant(PB) # Pressure at x=1
 
 def u0_boundary_bottom(x, on_boundary):
     if on_boundary:
@@ -52,8 +52,8 @@ def pressure_boundary_right(x):
     return x[0] > Lx - DOLFIN_EPS
 
 # No slip makes sure that the velocity field is zero at the boundaries
-noslip_1  = DirichletBC(V, (Vx0, Vy0), u0_boundary_bottom)
-noslip_2  = DirichletBC(V, (Vx1, Vy1), u0_boundary_top)
+noslip_1  = DirichletBC(V, (0, 0), u0_boundary_bottom)
+noslip_2  = DirichletBC(V, (0, 0), u0_boundary_top)
 
 # We apply a pressure at x=0, no pressure at 
 inflow  = DirichletBC(Q, p_in, pressure_boundary_left)
