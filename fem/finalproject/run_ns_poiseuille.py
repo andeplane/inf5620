@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
 
-init()
-
 V2 = VectorFunctionSpace(mesh, "CG", 1)
 
 # Extract the mesh coordinates to calculate exact solution

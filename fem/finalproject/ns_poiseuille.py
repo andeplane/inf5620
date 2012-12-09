@@ -2,21 +2,21 @@ from dolfin import *
 import numpy as np
 
 # Set parameter values
-dt = 0.01 # Timestep
-nu = 0.5 # Kinematic viscosity
-rho = 1.0    # Density
-Lx = 1
-Ly = 1
-Nx = 10
-Ny = 10
+dt = 0.01   # Timestep
+nu = 0.5    # Kinematic viscosity
+rho = 1.0   # Density
+Lx = 1      # Canal length (x)
+Ly = 1      # Canal length (y)
+Nx = 50     # Quadratic elements (x)
+Ny = 50     # Quadratic elements (y)
 
-Vx0 = 1
-Vy0 = 0
-Vx1 = 0
-Vy1 = 0
+Vx0 = 1     # v(x,0).x
+Vy0 = 0     # v(x,0).y
+Vx1 = 0     # v(x,Ly).x
+Vy1 = 0     # v(x,Ly).y
 
-PA = 1.0
-PB = 0.0
+PA = 1.0    # Pressure at x=0
+PB = 0.0    # Pressure at x=Lx
 
 mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
 
@@ -51,18 +51,18 @@ def pressure_boundary_left(x):
 def pressure_boundary_right(x):
     return x[0] > Lx - DOLFIN_EPS
 
-# No slip makes sure that the velocity field is zero at the boundaries
+# No slip makes sure that the velocity field is fixed at the boundaries
 noslip_1  = DirichletBC(V, (0, 0), u0_boundary_bottom)
 noslip_2  = DirichletBC(V, (0, 0), u0_boundary_top)
 
-# We apply a pressure at x=0, no pressure at 
+# Pressure boundary conditions
 inflow  = DirichletBC(Q, p_in, pressure_boundary_left)
 outflow = DirichletBC(Q, p_out, pressure_boundary_right)
 
 bcu = [noslip_1, noslip_2]
 bcp = [inflow, outflow]
 
-# Create functions
+# Create functions to save solutions
 u0 = Function(V)
 u1 = Function(V)
 p0 = Function(Q)
@@ -76,10 +76,10 @@ U = 0.5*(u0 + u)
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(grad(U), grad(v))*dx \
+    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(grad(u0)*u0, v)*dx \
+    + inner(nabla_grad(u0)*u0, v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)
