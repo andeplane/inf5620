@@ -9,6 +9,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{biblatex}
+\usepackage[titletoc]{appendix}
 \usepackage[width=.75\textwidth]{caption}
 %\usepackage{hyperref}
 %\usepackage{ifsym}
@@ -94,7 +95,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \maketitle
-
 \begin{abstract}
 A finite element method for the numerical solution of the incompressible Navier-Stokes equation (NSE) is derived. The method is called Incremental Pressure Correction Scheme (IPCS)\cite{ns_numerical_solutions}, and is an extension of the method of Chorin in 1968\cite{chorin}. We test the numerical stability of the method and compare the results to analytical solutions.
 \end{abstract}
@@ -231,19 +231,20 @@ where $\beta = \partial_x p$. If we also assume stationary flow, this reduces to
   \dpartt{u}{y} &= \frac{\beta}{\mu}
 \end{align*}
 which has the solution
-\begin{align*}
-  u(y) = \frac{\beta}{2\mu}y(h-y).
-\end{align*}
-The maximum velocity is found in the middle of the box $y=h/2$
 \begin{align}
-  \label{eq:max_vel}
-  u_{max} = u(h/2) = \frac{\beta}{2\mu}\frac{h^2}{4}.
+  \label{eq:poiseuille_stationary_0}
+  u(y) = \frac{\beta}{2\mu}y(h-y).
 \end{align}
 The pressure $p$ is linear, so the pressure gradient is a constant
 \begin{align*}
   \beta = \frac{P_A-P_B}{L},
 \end{align*}
-which inserted in \eqref{eq:max_vel} gives
+which inserted in \eqref{eq:poiseuille_stationary_0} gives
+\begin{align}
+  \label{eq:poiseuille_stationary_full}
+  u(y) = \frac{(P_A-P_B)}{2\mu L}y(h-y).
+\end{align}
+The maximum velocity is found in the middle of the box $y=h/2$
 \begin{align}
   \label{eq:poiseuille_stationary}
   u_{max} = \frac{(P_A-P_B)}{8\mu L}h^2.
@@ -302,24 +303,24 @@ where the fourier coefficients are given as
 \end{align*}
 The full solution for $u$ is
 \begin{align}
-  \frac{u}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(-n^2\pi^2 t'\right)
+  \frac{u(y,t)}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(\frac{-n^2\pi^2 \nu t}{h^2}\right)
 \end{align}
 \section{Numerical solution of the incompressible equation}
-In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to work with the time derivative. We rewrite NSE to
+In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to discretize the time. We rewrite NSE to
 \begin{align*}
-  \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec f - (\vec u\cdot \nabla)\vec u,
+  \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec F - (\vec u\cdot \nabla)\vec u,
 \end{align*}
 where we have defined the kinematic viscosity $\nu=\mu/\rho$, defined $\vec F = \vec f/\rho$, force per unit volume. We will use a scheme where we can exploit the fact that $\nabla \cdot \vec u = 0$ and manage to calculate $p^{n+1}$.
 \subsection{The classical splitting method}
 We use the Forward Euler method to find an expression for $\vec u^{n+1}$, but we evaluate the pressure also at the time step $n+1$. This will give an extra degree of freedom that we can use to make sure that $\vec u$ behaves as we know it should
 \begin{align}
   \label{eq:unext}
-  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n.
+  \vec u^{n+1} = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \frac{\Delta t}{\rho}\nabla p^{n+1} + \Delta t\vec F - \Delta t(\vec u^n\cdot \nabla)\vec u^n.
 \end{align}
 It is now possible to choose $\nabla p^{n+1}$ so that $\nabla \cdot \vec u^{n+1} = 0$. By using a temporary $\vec u^*$ which we define as
 \begin{align}
   \label{eq:ustar}
-  \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n + \Delta t\vec f - \Delta t(\vec u^n\cdot \nabla)\vec u^n,
+  \vec u^* = \vec u^{n} + \Delta t\nu\nabla^2\vec u^n - \beta\frac{\Delta t}{\rho}\nabla p^n + \Delta t\vec F - \Delta t(\vec u^n\cdot \nabla)\vec u^n,
 \end{align}
 note the factor $\beta$ in the pressure gradient term. Think of this as an intermediate solution. We now choose a $\delta \vec u$ so that
 \begin{align*}
@@ -350,7 +351,6 @@ and the pressure
   \vec p^{n+1} = \Phi + \beta p^n.
 \end{align}
 
-
 \section{A Finite Element Method}
 Assume now that we have given the initial pressure field $p$ and the initial velocity field $\vec u_0$. Following the recipe described above, we start by finding the $\vec u^*$. 
 \subsection{Variational form for $\vec u^*$}
@@ -359,7 +359,7 @@ We introduce basis vectors living in the test space $V^{(u)}$, and seek $\vec u^
   \frac{1}{\Delta t}\int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
   &- \nu\int_\Omega (\nabla^2\vec u^n)\cdot\vec v^{(u)} \dm \Omega\\
    &+ \frac{\beta}{\rho}\int_\Omega\nabla p^n \cdot\vec v^{(u)} \dm \Omega 
-   - \int_\Omega\vec f\cdot\vec v^{(u)} \dm \Omega 
+   - \int_\Omega\vec F\cdot\vec v^{(u)} \dm \Omega 
    + \int_\Omega(\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega = 0.
 \end{align*}
 By integrating the Laplace term and the pressure term by parts, we get
@@ -367,7 +367,7 @@ By integrating the Laplace term and the pressure term by parts, we get
   \frac{1}{\Delta t}\int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
   &+ \nu\int_\Omega\nabla\vec u^n\cdot\nabla\vec v^{(u)} \dm \Omega\\
    &- \frac{\beta}{\rho}\int_\Omega p^n \nabla\cdot\vec v^{(u)} \dm \Omega 
-   - \int_\Omega\vec f\cdot\vec v^{(u)} \dm \Omega 
+   - \int_\Omega\vec F\cdot\vec v^{(u)} \dm \Omega 
    + \int_\Omega (\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega\\
    &= \int_{\partial\Omega_{N,u}} (\nu\dpart{\vec u}{n} - p^n\vec n)\cdot\vec v^{(u)} \dm s
 \end{align*}
@@ -385,7 +385,10 @@ similarly for the pressure
 \begin{align*}
   \int_\Omega p^{n+1}v^{(\Phi)} \dm \Omega = \int_\Omega (\Phi + \beta p^n)v^{(\Phi)} \dm \Omega.
 \end{align*}
+
+
 \section{Numerical implementation}
+
 \subsection{Stability criterion}
 The numerical solution is based on a discretized time derivative, and the stability criterion is given by \cite{ns_numerical_solutions}
 \begin{align*}
@@ -396,6 +399,9 @@ where $h$ is the minimum element size and $U$ is a characteristic size of the ve
   \Delta t \leq \frac{h}{U},
 \end{align*}
 which we will study in more detail later in this report.
+
+\subsection{FEniCS}
+FEniCS is a 
 
 \section{Verification}
 \subsection{2 dimensional Hagen-Poiseuille flow}
@@ -424,11 +430,19 @@ We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each
   \end{center}
 \end{table}
 
-\section{Appendices}
-\appendix
-\section{Poiseuilles law in FEniCS}
-\label{ap:a}
-\lstinputlisting{my_ns.py}
+\begin{appendices}
+  \gdef\thesection{Appendix \Alph{section}}
+  \section{Starting Couette flow}
+  \label{ap:a}
+  \lstset{language=Python,caption={run\_ns\_couette.py},label=lst:run_ns_couette}
+  \lstinputlisting{run_ns_couette.py}
+  \lstset{language=Python,caption={ns\_couette.py},label=lst:ns_couette}
+  \lstinputlisting{ns_couette.py}
+\end{appendices}
+
+%\section{Appendices}
+%\appendix
+%\section{Starting Couette flow}
 
 \printbibliography
 \end{document}

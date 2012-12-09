@@ -1,0 +1,49 @@
+\subsection{Stationary solution - Poiseuilles law}
+For a fluid moving in the x-direction, the viscosity coefficient is defined as
+\begin{align*}
+  \frac{F}{A} = \tau = \mu\left|\dpart{u_x}{y}\right|,
+\end{align*}
+a proportional factor that describes the relation between shear stress and the velocity gradient normal to the fluid velocity. If we look at a box of height $h$, length $L$ and depth $d$ (we will assume that we are far away from the walls in the depth-direction), the force in the above equation can be written as
+\begin{align*}
+  F = \mu A \left|\frac{\dm u_x}{\dm y}\right| = \mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+\end{align*}
+We define $y=0$ to be at height $h/2$, in the middle of the box. We assume stationary flow, and this force must exact cancel the force made by a pressure difference at $x=0$ and $x=L$, so that
+\begin{align*}
+  (P_A - P_B)yd = -\mu Ld\left|\frac{\dm u_x}{\dm y}\right|.
+\end{align*}
+By integrating, we get
+\begin{align*}
+  -\int_v^0 \dm u_x  &= \frac{(P_A - P_B)}{\mu L}\int_y^{h/2}y'\dm y'\\
+  v(y) &= \frac{(P_A - P_B)}{2\mu L}\left[\frac{h^2}{4}-y^2\right],
+\end{align*}
+which gives the maximum velocity
+\begin{align}
+  \label{eq:max_vel}
+  v_{max} = v(0) = \frac{(P_A - P_B)}{8\mu L}h^2.
+\end{align}
+\subsection{Numerical results}
+An implementation of the Poisuilles law problem can be found in appendix \ref{ap:a}. We will compare the theoretical maximum velocity $v(0)$ with the numerics. Our adjustable parameters is
+\begin{itemize}
+\item $\Delta x$ - grid size
+\item $\Delta P$ - pressure difference
+\item $\mu$ - viscosity
+\item $L$ - distance between $A$ and $B$ in pressure difference
+\item $h$ - tube height
+\end{itemize}
+We apply equation \eqref{eq:max_vel} with different parameters and run FEniCS until we reach a steady state. The results can be found in table \ref{tab:faen}.
+
+\begin{table}[hb]
+  \label{tab:faen}
+  \begin{center}
+    \begin{tabular}[width=4in]{|c|c|c|c|c|c|c|c|}
+      \hline
+      \# & $\Delta p$ & $\mu$ & $L$ & $h$ & Analytical & FEniCS & Error\\ \hline
+      1 & 1 & 1 & 1 & 1 & 0.125 & 0.125 & 0.000\\
+      2 & 2 & 1 & 1 & 1 & 0.250 & 0.250 & 0.000\\
+      3 & 1 & 1 & 1 & 2 & 0.500 & 0.500 & 0.000\\
+      \hline
+    \end{tabular}
+  \caption{Comparison of the analytical and the numerical solution of the pressure driven stationary system.}
+  \end{center}
+
+\end{table}
