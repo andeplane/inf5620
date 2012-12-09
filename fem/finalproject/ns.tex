@@ -289,12 +289,12 @@ We can separate \eqref{eq:dimless_couette} so that $u_1' = f(y')g(t')$ which giv
   \frac{g'}{g} = \frac{f''}{f} = -\lambda^2
 \end{align*}
 with solution
-\begin{alignat}{2}
-  g = C\exp(-\lambda^2t') & f = A\sin(\lambda y') + B\cos(\lambda y').
-\end{alignat}
-The boundary conditions gives $B=0$ and $\lambda=n\pi$ with full solution
+\begin{alignat*}{2}
+  g = C\exp(-\lambda^2t') & \qquad\quad f = A\sin(\lambda y') + B\cos(\lambda y').
+\end{alignat*}
+The boundary conditions give $B=0$ and $\lambda=n\pi$, which gives
 \begin{align*}
-  u_1'(y',t') = \sum_{n=1}^\infty A_n \sin\left(n\pi y'\right)\exp\left(-n^2\pi^2t'\right)
+  u_1'(y',t') = \sum_{n=1}^\infty A_n \sin\left(n\pi y'\right)\exp\left(-n^2\pi^2t'\right),
 \end{align*}
 where the fourier coefficients are given as
 \begin{align*}
@@ -305,7 +305,7 @@ The full solution for $u$ is
   \frac{u}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(-n^2\pi^2 t'\right)
 \end{align}
 \section{Numerical solution of the incompressible equation}
-In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to work on the time derivative. We rewrite NSE to
+In order to solve this with a finite element method, we need to discretize the equation both in the time dimension and the spatial dimension. The only time dependent part of the equation is in the material derivative. The spatial discretization will be taken care of by the FEniCS program, so we only need to work with the time derivative. We rewrite NSE to
 \begin{align*}
   \dpart{\vec u}{t} = \nu\nabla^2\vec u - \frac{1}{\rho}\nabla p + \vec f - (\vec u\cdot \nabla)\vec u,
 \end{align*}
