@@ -2,9 +2,9 @@ from dolfin import *
 import numpy as np
 
 # Set parameter values
+rho = 1.0   # Assumed to 1.0, not included in the calculations
 dt = 0.01   # Timestep
 nu = 0.5    # Kinematic viscosity
-rho = 1.0   # Density
 Lx = 1      # Canal length (x)
 Ly = 1      # Canal length (y)
 Nx = 50     # Quadratic elements (x)
