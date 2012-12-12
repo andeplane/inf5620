@@ -37,7 +37,7 @@
  breaklines=true,
  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
  frame=single,
- showtabs=true,
+ showtabs=false,
  showspaces=false,
  showstringspaces=false,
  identifierstyle=\ttfamily,
@@ -348,7 +348,7 @@ and recognize this as a Poisson equation for $\Phi$ that is easily solved since 
 and the pressure
 \begin{align}
   \label{eq:p_next}
-  \vec p^{n+1} = \Phi + \beta p^n.
+  p^{n+1} = \Phi + \beta p^n.
 \end{align}
 
 \section{A Finite Element Method}
@@ -363,28 +363,27 @@ We introduce basis vectors living in the test space $V^{(u)}$, and seek $\vec u^
    + \int_\Omega(\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega = 0.
 \end{align*}
 By integrating the Laplace term and the pressure term by parts, we get
-\begin{align*}
+\begin{align}
+  \label{eq:ustar_variational_form}
   \frac{1}{\Delta t}\int_\Omega(\vec u^* - \vec u^{n})\cdot\vec v^{(u)}\dm \Omega
   &+ \nu\int_\Omega\nabla\vec u^n\cdot\nabla\vec v^{(u)} \dm \Omega\\
    &- \frac{\beta}{\rho}\int_\Omega p^n \nabla\cdot\vec v^{(u)} \dm \Omega 
    - \int_\Omega\vec F\cdot\vec v^{(u)} \dm \Omega 
    + \int_\Omega (\vec u^n\cdot \nabla)\vec u^n\cdot\vec v^{(u)} \dm \Omega\\
    &= \int_{\partial\Omega_{N,u}} (\nu\dpart{\vec u}{n} - p^n\vec n)\cdot\vec v^{(u)} \dm s
-\end{align*}
+\end{align}
 \subsection{Variational form for $\Phi$}
 To solve the Poisson equation for $\Phi$, we multiply by a test function $v^{(\Phi)} \in V^{(\Phi)}$ and integrate
-\begin{align*}
-  \int_\Omega \nabla^2\Phi v^{(\Phi)} \dm \Omega &= \frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega\\
-  \int_\Omega \nabla\Phi \cdot \nabla v^{(\Phi)} \dm \Omega &= -\frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega + \int_{\partial \Omega_{n,\Phi}} \dpart{\Phi}{n}v^{(\Phi)} \dm s
-\end{align*}
+\begin{align}
+  \int_\Omega \nabla^2\Phi v^{(\Phi)} \dm \Omega &= \frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega \\
+  \int_\Omega \nabla\Phi \cdot \nabla v^{(\Phi)} \dm \Omega &= -\frac{\rho}{\Delta t} \int_\Omega \nabla \cdot \vec u^* v^{(\Phi)} \dm \Omega + \int_{\partial \Omega_{n,\Phi}} \dpart{\Phi}{n}v^{(\Phi)} \dm s \label{eq:p_variational_form}
+\end{align}
 When we have found $\Phi$ and $\vec u^*$, we can use a variational form of \eqref{eq:u_next}
-\begin{align*}
+\begin{align}
+  \label{eq:u_variational_form}
   \int_\Omega \vec u^{n+1}\cdot \vec v^{(u)} \dm \Omega = \int_\Omega (\vec u^* - \frac{\Delta t}{\rho}\nabla \Phi)\cdot \vec v^{(u)} \dm \Omega,
-\end{align*}
-similarly for the pressure
-\begin{align*}
-  \int_\Omega p^{n+1}v^{(\Phi)} \dm \Omega = \int_\Omega (\Phi + \beta p^n)v^{(\Phi)} \dm \Omega.
-\end{align*}
+\end{align}
+to find $\vec u^{n+1}$. The pressure is found directly by formulating $\Phi = p^{n+1} - \beta p^n$ in \eqref{eq:p_variational_form}.
 
 
 \section{Numerical implementation}
@@ -401,9 +400,85 @@ where $h$ is the minimum element size and $U$ is a characteristic size of the ve
 which we will study in more detail later in this report.
 
 \subsection{FEniCS}
-FEniCS is a 
+\subsubsection{The mesh and vector spaces}
+FEniCS is a toolbox created to solve finite element methods with syntax very close to the mathematical formulation. First, you specify the grid (which uniquely defines the spatial discretization)
+\begin{lstlisting}
+  mesh = Rectangle(0,0,length_x,length_y,elements_x,elements_y,'left')
+\end{lstlisting}
+which will create a rectangle with length $length_x\times length_x$ with $elements_x$ squares in the $x$-direction, each divided into two triangles, see figure \ref{fig:mesh}. Then we create the function spaces $V^{(u)}$ and $V^{(\Phi)}$ for the velocity- and pressure field
+\begin{lstlisting}
+  V = VectorFunctionSpace(mesh, "CG", 2)
+  Q = FunctionSpace(mesh, "CG", 1)
+\end{lstlisting}
+where the last number means what kind of elements we will use. We then create test and trial functions 
+\begin{lstlisting}
+  # Define trial and test functions
+  u = TrialFunction(V) # Trial function for u
+  p = TrialFunction(Q) # Trial function for p
 
-\section{Verification}
+  v = TestFunction(V) # Test function for u
+  q = TestFunction(Q) # Test function for p
+\end{lstlisting}
+\subsubsection{Boundary conditions}
+There are two kinds of boundary conditions we usually meet, and the ways we deal with these are quite different. We have the Dirichlet condition where we specify the function values at the boundary
+\begin{alignat*}{2}
+  \vec u(\vec x,t) = \vec B(\vec x,t) & \qquad \quad \vec x \in \partial \Omega,
+\end{alignat*}
+and the Neumann condition where we know the normal derivative
+\begin{alignat*}{2}
+  \nabla\vec u(\vec x,t)\cdot\vec n = \vec B(\vec r,t) + g(\vec x,t) & \qquad \quad \vec r \in \partial \Omega.
+\end{alignat*}
+In the Dirichlet case, the set of linear equations are fixed by first defining the boundary conditions
+\begin{lstlisting}
+Vx0 = 1
+Vy0 = 0
+Vx1 = 0
+Vy1 = 0
+
+def u_boundary_bottom(x, on_boundary):
+    if on_boundary:
+        return x[1] < DOLFIN_EPS
+
+def u_boundary_top(x, on_boundary):
+    if on_boundary:
+        return x[1] > Ly - DOLFIN_EPS
+
+noslip_bottom  = DirichletBC(V, (Vx0, Vy0), u0_boundary_bottom)
+noslip_top  = DirichletBC(V, (Vx1, Vy1), u0_boundary_top)
+bcu = [noslip_bottom, noslip_top]
+...
+while t<T:
+  [bc.apply(A1, b1) for bc in bcu]
+\end{lstlisting}
+where the velocity will be forced to the values specified. In the last line, we apply the boundary conditions to the equations specified by $A1$ and $b1$. The Neumann boundary conditions appear more directly in the mathematical formulation which we will see shortly.
+\subsubsection{The variational form}
+We ended up with 3 equations on variational form defining the $\vec u$ and $p$ that are solutions to the NSE, equation \eqref{eq:ustar_variational_form}, \eqref{eq:p_variational_form} and \eqref{eq:u_variational_form}. In FEniCS, we write these as
+\begin{lstlisting}
+U = 0.5*(u0 + u)
+# Tentative velocity (equation 14)
+F1 = (1/k)*inner(u - u0, v)*dx \
+    + nu*inner(grad(U), grad(v))*dx \
+    - p0*div(v)*dx \
+    - inner(f, v)*dx \
+    + inner(grad(u0)*u0, v)*dx \
+    + inner(p0*n,v)*ds \
+    
+a1 = lhs(F1)
+L1 = rhs(F1)
+
+# Pressure (equation 18)
+a2 = inner(grad(p), grad(q))*dx
+L2 = inner(grad(p0),grad(q)) *dx \
+    -(rho/k)*div(u1)*q*dx
+
+# Final velocity (equation 19)
+a3 = inner(u, v)*dx
+L3 = inner(u1, v)*dx \
+    - k/rho*inner(grad(p1 - p0), v)*dx
+\end{lstlisting}
+note how close they are to the mathematical formulation. This is the key concept of FEniCS, and a full implementation can be found in \ref{ap:a} and \ref{ap:b} for the two systems we have studied in this project.
+
+\section{Verification and results}
 \subsection{2 dimensional Hagen-Poiseuille flow}
 Our adjustable parameters are
 \begin{itemize}
@@ -413,7 +488,7 @@ Our adjustable parameters are
 \item $L$ - distance between $A$ and $B$ in pressure difference
 \item $d$ - box height
 \end{itemize}
-We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in Appendix \ref{ap:a}. We let FEniCS run until we reach a steady and compare the maximum thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we will for simplicity only look at the numerical values.
+We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in \ref{ap:a}. We let FEniCS run until we reach a steady state and compare the maximum thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we will for simplicity only look at the numerical values.
 
 \begin{table}[h!]
   \begin{center}
@@ -435,9 +510,15 @@ We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each
   \section{Starting Couette flow}
   \label{ap:a}
   \lstset{language=Python,caption={run\_ns\_couette.py},label=lst:run_ns_couette}
-  \lstinputlisting{run_ns_couette.py}
+  \lstinputlisting{../run_ns_couette.py}
   \lstset{language=Python,caption={ns\_couette.py},label=lst:ns_couette}
-  \lstinputlisting{ns_couette.py}
+  \lstinputlisting{../ns_couette.py}
+  \section{Hagen-Poiseulle flow}
+  \label{ap:b}
+  \lstset{language=Python,caption={run\_ns\_poiseuille.py},label=lst:run_ns_couette}
+  \lstinputlisting{../run_ns_couette.py}
+  \lstset{language=Python,caption={ns\_poiseuille.py},label=lst:ns_couette}
+  \lstinputlisting{../ns_couette.py}
 \end{appendices}
 
 %\section{Appendices}

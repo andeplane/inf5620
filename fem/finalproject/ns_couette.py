@@ -92,7 +92,7 @@ L2 = inner(grad(p0),grad(q)) *dx\
 
 # Velocity update
 a3 = inner(u, v)*dx
-L3 = inner(u1, v)*dx - k*inner(grad(p1 - p0), v)*dx
+L3 = inner(u1, v)*dx - k/rho*inner(grad(p1 - p0), v)*dx
 
 # Assemble matrices
 A1 = assemble(a1)

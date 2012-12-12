@@ -1,0 +1,251 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Problem 1 - INF5620}
+
+\date{\today}
+\author{Kand. Nr. 31}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegraphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegraphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\section{Explain briefly how this equation arises from basic principles in physics and what the individual terms model.}
+We look at a sphere with radius $r$, volume $V$ and density $\rho$ falling with gravity $g$ in a viscous fluid with dynamic viscosity $\mu$, density $\rho_f$. The forces are divided into three parts
+\begin{align*}
+  F_g &= -mg = -V\rho g\\
+  F_d &= -6\pi r\mu v\\
+  F_f &= V\rho_f g
+\end{align*}
+where $F_G = F_g + F_f = gV(\rho_f - \rho)$ is the total force due to gravity including the uplift from archimedes principle. Using Newtons 2nd law, we have
+\begin{align}
+  \nonumber
+  V\rho \dot v &= -V\rho g -6\pi r\mu v + V\rho_f g\\
+  \nonumber
+  &= gV(\rho_f - \rho) -6\pi r\mu \cdot v\\
+  \label{eq:newton2nd}
+  \dot v &= {g(\rho_f - \rho) \over \rho} -{6\pi r\mu \over V\rho }v = A + Bv,
+\end{align}
+where $A=g(\rho_f - \rho)/\rho$ and $B=-6\pi r\mu /V\rho$. This is a first order differential equation for the velocity $v$. Note that the friction term is proportional to the radius and the viscosity of the fluid. This term is called Stokes' law and can be derived by solving the Navier-Stokes equations assuming Stokes flow. Stokes flow has low Reynold numbers, and this is also a requirement for \eqref{eq:newton2nd} to hold. The reynold number is defined as
+\begin{align}
+  \label{eq:reynold}
+  \text{Re} = {\rho d|v| \over \mu},
+ \end{align}
+where $d$ is a characteristic length of the object, i.e. the diameter. The thermal velocity is given when the acceleration is zero
+\begin{align*}
+  v_{max} = -{A \over B} = {Vg(\rho_f - \rho) \over {6\pi r\mu}},
+\end{align*}
+whereas the full analytical solution to the differential equation is
+\begin{align*}
+  v(t) = c_1\exp(Bt) - \frac{A}{B}.
+\end{align*}
+If we insert the initial condition $v(0)=0$, we have
+\begin{align*}
+  v(t) = {Vg(\rho_f - \rho) \over {6\pi r\mu}}\left[1 - \exp\left(-\frac{6\pi r\mu}{V\rho}t\right)\right].
+\end{align*}
+
+\section{Derive a Forward Euler, Backward Euler, and a Crank-Nicolson scheme for the equation. Mention other possible schemes too.}
+In order to solve this system numerically, we have to discretize the time dimension so that
+\begin{align*}
+  t = n\Delta t
+\end{align*}
+and our numerical solutions obeys
+\begin{align*}
+  v(t) \approx v(n\Delta t) \equiv v^n
+\end{align*}
+The only way to evolve the system in time is by connecting $v_n$ to $v^{n+1}$ by using a scheme for the time derivative. 
+\subsection{Operator notation}
+We use the operator notation to describe the different schemes, where the differential equation
+\begin{align*}
+  \dpart{u}{t} = f(u)
+\end{align*}
+is discretized as
+\begin{alignat}{3}
+  &[D^+_tv = f(v)]^n & \qquad \quad \text{Forward Euler}\\
+  &[D^-_tv = f(v)]^n & \qquad \quad \text{Backward Euler}\\
+  &[D_tv = f(v)]^{n+1/2} & \qquad \quad \text{Crank-Nicolson}
+\end{alignat}
+where we'll investigate these in detail in the following sections.
+
+\subsection{Forward Euler}
+The FE scheme is written with operator notation
+\begin{align*}
+  [D^+_tv = A + Bv]^n = {v^{n+1} - v^n \over \Delta t} = A + Bv^n
+\end{align*}
+which can be solved directly to give an explicit scheme for $v^{n+1}$
+\begin{align}
+  \label{eq:forward_euler}
+  v^{n+1} = \Delta t(A + Bv^n) + v^n = v^n(1 + \Delta t B) + \Delta tA
+\end{align}
+\subsection{Backward Euler}
+If we instead evaluate the derivative in timestep $n+1$, we get the Backward Euler scheme
+\begin{align*}
+  [D^-_tv = A + Bv]^n = {v^{n} - v^{n-1} \over \Delta t} = A + Bv^n
+\end{align*}
+which also gives an explicit scheme
+\begin{align*}
+  v^n(1 - \Delta t B) &= \Delta t A + v^{n-1}\\
+  v^n &= {\Delta t A + v^{n-1} \over 1 - \Delta t B}
+\end{align*}
+\subsection{Crank-Nicolson}
+In the Crank-Nicolson scheme, we expand the function around $n+1/2$, so that
+\begin{align*}
+  [D_tv = f(v)]^{n+1/2} &= {v^{n+1/2 + 1/2} - v^{n+1/2 - 1/2} \over 2\Delta t/2} = {v^{n+1} - v^{n} \over \Delta t}\\
+  &= f(v^{n+1/2}) = A + Bv^{n+1/2},
+\end{align*}
+where we have to find a way to evalute $v^{n+1/2}$. A usual approach is to use the arithmetic mean $v^{n+1/2} = 1/2(v^{n+1} + v^n)$ which again will give us an explicit scheme for $v^{n+1}$
+\begin{align*}
+  {v^{n+1} - v^{n} \over \Delta t} &= A + \frac{B}{2}(v^{n+1} + v^n)\\
+  v^{n+1} &= {A\Delta t + v^n\left(1 + \frac{B\Delta t}{2}\right) \over \left(1 - \frac{B\Delta t}{2}\right)}
+\end{align*}
+\subsection{$\theta$-rule}
+All these can be summarized into one scheme with a parameter $\theta$ determining which scheme we end up with. We define $f(v^{n+\theta})=f(\theta v^{n+1} + (1-\theta)v^n)$
+\begin{align*}
+  {v^{n+1} - v^n \over \Delta t} = A + B\left(\theta v^{n+1} + (1-\theta)v^n\right)
+\end{align*}
+which we can solve for $u^{n+1}$
+\begin{align}
+  \label{eq:theta}
+  v^{n+1} &= {A\Delta t + v^n\left[1 + B\Delta t(1-\theta) \right] \over 1 - \theta B\Delta t}
+\end{align}
+which will give Forward Euler, Crank-Nicolson and Backward Euler for $\theta \{0,\frac{1}{2},1\}$ respectivly.
+\subsection{Runge-Kutta}
+
+\section{Illustrate what kind of numerical artifacts that may appear when using the Forward Euler, Backward Euler, and a Crank-Nicolson schemes. Explain the reason for the artifacts (motivated by a mathematical analysis of the schemes).}
+\subsection{Oscillations and divergence}
+If we start with the initial velocity $v_0$ and use \eqref{eq:theta}, we can find $v_1$, $v_2$ etc
+\begin{align*}
+  v^1 &= {A\Delta t + v^0\left[1 + B\Delta t(1-\theta) \right] \over 1 - \theta B\Delta t} = v^0C + D\\
+  v_2 &= v_1C + D = (v_0C + D)C + D = v_0C^2 + DC + D\\
+  v_3 &= v_2C + D = (v_1C + D)C + D = ((v_0C + D)C + D)C + D\\
+      &= v_0C^3 + DC^2 + DC + D.
+\end{align*}
+where
+\begin{align*}
+  C&={1 + B\Delta t(1-\theta)\over 1 - \theta B\Delta t}\\  
+  D&={A\Delta t \over 1 - \theta B\Delta t}.
+\end{align*}
+We recognize a pattern and can write the $n$'th term as
+\begin{align*}
+  v_n = v_0 C^n + D\sum_{k=0}^{n-1}C^k = v_0C^n + D\frac{1 - C^n}{1 - C}
+\end{align*}
+where we have used the sum of a geometric series. In order to have a convergent series, we require $|C|<1$, which gives a stability criterion for $\Delta t$. If we also want non-oscillating solutions (which are non-physical), we require $0 < C < 1$
+\begin{align*}
+  0 &< C\\
+  0 &< {1 + B\Delta t(1-\theta)\over 1 - \theta B\Delta t}.
+\end{align*}
+Since $B$ is negative, the denominator will always be greater than 1, so this inequality reduces to
+\begin{align}
+  \label{eq:backward_stable}
+  1 + B\Delta t(1-\theta) \geq 0\\
+  \nonumber
+  \Delta t \leq -{1 \over B(1-\theta)}
+\end{align}
+Note that \eqref{eq:backward_stable} always holds for Backward Euler, i.e. $\theta = 1$. The other inequality gives
+\begin{align*}
+  C &\leq 1\\
+  {1 + B\Delta t(1-\theta)\over 1 - \theta B\Delta t} &\leq 1\\
+  1 + B\Delta t - \theta B\Delta t &\leq 1 - \theta B\Delta t\\
+  1 + B\Delta t&\leq 1\\
+  B\Delta t \leq 0,
+\end{align*}
+which also holds because $B<0$. The divergence problem appears only when $C < -1$, which is taken care of by the first inequality.
+\section{Which one of the three schemes will you recommend for solving this equation with a) large time steps and b) small time steps?}
+
+
+\end{document}
