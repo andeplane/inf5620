@@ -59,7 +59,7 @@
 \title{Problem 1 - INF5620}
 
 \date{\today}
-\author{Kand. Nr. 31}
+\author{Anders Hafreager}
 
 \newenvironment{changemargin}[2]{%
  \begin{list}{}{%
@@ -246,6 +246,32 @@ Note that \eqref{eq:backward_stable} always holds for Backward Euler, i.e. $\the
 \end{align*}
 which also holds because $B<0$. The divergence problem appears only when $C < -1$, which is taken care of by the first inequality.
 \section{Which one of the three schemes will you recommend for solving this equation with a) large time steps and b) small time steps?}
+
+\section{The equation above is not a good model if $\rho vr/\mu$ is much greater than 1, which is the case for a body that is not very small. How can the model be extended to cover this case? Suggest a numerical scheme for the modified equation.}
+This quantity is the Reynold number,
+\begin{align*}
+  \text{Re} = \frac{\rho v r}{\mu}
+\end{align*}
+and as mentioned earlier, the Stokes drag is valid only in the low Reynolds number regime. For large objects, we want a quadratic air resistance term. Instead of the Stokes drag, we can use 
+\begin{align*}
+  F_d &= -\frac{1}{2}C_D \rho A |v|v
+\end{align*}
+where $C_D$ is a dimensionless drag coefficient depending on the body's shape, A is the cross-sectional area. Newton's 2nd law looks like
+\begin{align*}
+  \dot v &= {g(\rho_f - \rho) \over \rho} -\frac{C_DA}{2V}|v|v = A + B|v|v,
+\end{align*}
+a non linear equation for $v$.
+\subsection{Crank-Nicolson}
+We can make a CN-scheme for this equation
+\begin{align*}
+  {v^{n+1} - v^n \over \Delta t} &= A + B|v^n|v^{n+1},
+\end{align*}
+where we instead of the arithmetic mean have used the geometric mean. Solving for $v^{n+1}$ gives
+\begin{align*}
+  v^{n+1} = {A\Delta t + v^n \over 1 + B\Delta t|v^n|}.
+\end{align*}
+\section{Suppose the shape of the body is much more complicated than a sphere so that simple fluid resistance formulas are too inaccurate. Explain briefly how one can compute (in principle) a more accurate drag force on the body from a detailed flow calculation with PDEs.}
+
 
 
 \end{document}

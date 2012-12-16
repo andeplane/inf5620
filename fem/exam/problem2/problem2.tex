@@ -1,0 +1,171 @@
+\documentclass[a4paper,10pt]{article}
+%\usepackage[latin1]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage{ifsym}
+\usepackage{parskip}
+\usepackage[numbers,sectionbib]{natbib}
+
+% Egne kommandoer for enklere vektornotasjon
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+%\renewcommand{\>}{\right>}
+%\renewcommand{\<}{\left<}
+\newcommand{\dm}[1]{\text{d}#1}
+\newcommand{\dd}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\ddd}[2]{\frac{\mathrm{d^2}#1}{\mathrm{d}#2^2}}
+\newcommand{\dpart}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\dpartt}[2]{\frac{\partial^2#1}{\partial#2^2}}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\definecolor{listinggray}{gray}{0.9}
+\definecolor{lbcolor}{rgb}{0.9,0.9,0.9}
+\lstset{
+ backgroundcolor=\color{white},
+ tabsize=4,
+ rulecolor=,
+ language=c++, 
+ basicstyle=\scriptsize,
+ upquote=true,
+ aboveskip={1.5\baselineskip},
+ columns=fixed,
+ showstringspaces=false,
+ extendedchars=true,
+ breaklines=true,
+ prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+ frame=single,
+ showtabs=false,
+ showspaces=false,
+ showstringspaces=false,
+ identifierstyle=\ttfamily,
+ keywordstyle=\color[rgb]{0,0,1},
+ commentstyle=\color[rgb]{0.133,0.545,0.133},
+ stringstyle=\color[rgb]{0.627,0.126,0.941},
+}
+\usepackage{subfig}
+%\usepackage{wrapfig}
+\usepackage{epstopdf}
+
+\title{Problem 1 - INF5620}
+
+\date{\today}
+\author{Anders Hafreager}
+
+\newenvironment{changemargin}[2]{%
+ \begin{list}{}{%
+ %\setlength{\topsep}{0pt}%
+ \setlength{\leftmargin}{#1}%
+ \setlength{\rightmargin}{#2}%
+ %\setlength{\listparindent}{\parindent}%
+ %\setlength{\itemindent}{\parindent}%
+ %\setlength{\parsep}{\parskip}%
+ }%
+ \item[]}{\end{list}}
+ 
+ \newcommand{\maxFigure}[4]{
+ \begin{figure}[htp!]
+ \begin{changemargin}{-3cm}{-1cm}
+ \begin{center}
+ %\includegraphics[width=\paperwidth + 3cm,height=\paperheight,keepaspectratio]{#2}
+ \includegraphics[scale = #2]{#3}
+ \end{center}
+ \end{changemargin}
+\vspace{-10pt}
+  \caption{\textit{#1} }
+  \label{#4}
+ \end{figure}
+ }
+ 
+ \makeatletter
+ \setlength{\abovecaptionskip}{6pt}   % 0.5cm as an example
+\setlength{\belowcaptionskip}{6pt}   % 0.5cm as an example
+% This does justification (left) of caption.
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+\makeatother
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+We look at heat conduction in a body with density $\rho$, heat capacity $c$ and heat conduction coefficient $\alpha$. The equation for the temperature distribution $T(x,y,z,t)$ can be written as
+\begin{align*}
+  \rho c T_t = \nabla \cdot (\alpha(x,y,z)\nabla T).
+\end{align*}
+The body is a cylinder of length L with isolated cylindrical surface such that $-\alpha\partial_n T=0$ here. The ends are kept at constant temperatures $T_0$ and $T_1$. The left half of the cylinder is made of a material with heat capacity $c_0$ and conduction coefficient $\alpha_0$, while the right half has values $c_1$ and $\alpha_1$. At first, these are two separate cylinders, but at $t=0$ the cylinders are brought together.
+
+\section{Show that the simplification T=T(x,t) is possible in the described problem, where x is a coordinate along the cylinder (just insert T(x,t) in the original problem and see that it fulfills all equations). Set up the simplified PDE with proper boundary and initial conditions.}
+We assume that the temperature is only dependent of $x$, so that $T(x,y,z,t) = T(x,t)$. We insert into the diffusion equation
+\begin{align*}
+  \rho c \dpart{T(x,t)}{t} = \nabla \cdot (\alpha(x,y,z)\nabla T) = \nabla\alpha\cdot\nabla T + \alpha \nabla^2 T
+\end{align*}
+Since $T$ is only dependent of $x$, this reduces to
+\begin{align*}
+  \rho c \dpart{T}{t} = \nabla\alpha\cdot\nabla T + \alpha \nabla^2 T = \dpart{\alpha}{x}\dpart{T}{x} + \alpha\dpartt{T}{x} = \dpart{}{x}\left(\alpha\dpart{T}{x}\right)
+\end{align*}
+with 
+\begin{align*}
+  \alpha(x) &= \left\{ 
+  \begin{array}{l l}
+    \alpha_0 & \quad x<L/2\\
+    \alpha_1 & \quad x\geq L/2
+  \end{array} \right.\\
+  c(x) &= \left\{ 
+  \begin{array}{l l}
+    c_0 & \quad x<L/2\\
+    c_1 & \quad x\geq L/2
+  \end{array} \right.\\
+  T(x,0) &= \left\{ 
+  \begin{array}{l l}
+    T_0 & \quad x<L/2\\
+    T_1 & \quad x\geq L/2
+  \end{array} \right.\\
+  T(0) &= T_0\\
+  T(L) &= T_1
+\end{align*}
+\section{The 1D PDE problem is discretized by the Forward Euler, Backward Euler, and Crank-Nicolson schemes. Derive the discrete equations for one of these schemes.}
+We discretize in the usual way
+\begin{align*}
+  T(x,t)\approx T(i\Delta x,n\Delta t) \equiv T^n_i
+\end{align*}
+\subsection{Forward Euler}
+\begin{align*}
+  \Big[\rho c D_t^+T = D_x\alpha[D_xT]\Big]^n_i
+\end{align*}
+where we have used the centered difference scheme in the spatial part of the equation. Written out with indices, this becomes
+\begin{align*}
+  \rho c {T^{n+1}_i - T^{n}_i\over \Delta t} = \frac{1}{\Delta x^2}\Big[\alpha_{i+1/2}\big(T^n_{i+1} - T^n_{i}\big) - \alpha_{i-1/2}\big(T^n_i - T^n_{i-1}\big)\Big]
+\end{align*}
+which can be solved directly for $T^{n+1}_i$
+  \begin{align*}
+  T^{n+1}_i = C\Big[\alpha_{i+1/2}\big(T^n_{i+1} - T^n_{i}\big) - \alpha_{i-1/2}\big(T^n_i - T^n_{i-1}\big)\Big] + T^{n}_i
+\end{align*}
+where $C=\frac{\Delta t}{\rho c\Delta x^2}$.
+\section{Assume for simplicity that $c_0=c_1$ and that $\alpha_0=\alpha_1$. With a discontinuous initial conditions, numerical artifacts may appear in the solutions with the three methods. Illustrate such artifacts. A suitable program to play around with is demo\_osc.py.}
+
+\section{Present the ideas and results of an analysis that can explain the artifacts in the previous subproblem.}
+When $\alpha$ is a constant, the equation is reduced to
+\begin{align*}
+  u_t = Cu_xx
+\end{align*}
+
+
+
+\end{document}

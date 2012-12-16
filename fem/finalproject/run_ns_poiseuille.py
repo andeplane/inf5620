@@ -22,8 +22,8 @@ for l in range(Ny):
 fig = plt.figure()
 ax = fig.add_subplot(111)
 line, = ax.plot([], [], lw=2)
-ax.set_ylim(0, Vx0)
-ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.set_xlim(0, Ly)
 ax.grid()
 
 T = 4

@@ -222,6 +222,7 @@ and this is the equation we will analyze.
 Different geometries give rise to very different solutions, and there are a few systems that hase a closed form solution, or at least a solution formulated as simple sums over basis functions. One system of interest is flow in a 2 dimensional canal where we apply a constant pressure gradient in the $x$-direction. Such flows are called \textit{Hagen-Poiseuille flow}. This is a stationary solution where the time derivative $\partial_t \vec u=0$. We also look at \textit{Starting Couette flow} where there is no pressure gradient, but one of the walls inside the canal instantly accelerates to a velocity $U$.
 
 \subsection{2 dimensional Hagen-Poiseuille flow}
+\label{sec:hagenpoiseuille}
 Assume a flow in a 2 dimensional box of length $L$ ($x$-direction) and height $h$ where we assume that $\vec u = (u_x,0,0)$, i.e. the only non zero component is in the $x$-direction. The boundaries are not moving, and we will use $u=u_x$ to simplify the notation. If we assume that $\partial_x u_x=0$, the NSE looks like
 \begin{align*}
   \rho\dpart{u}{t} &= -\dpart{p}{x} + \mu\dpartt{u}{y} = -\beta + \mu\dpartt{u}{y}
@@ -249,7 +250,9 @@ The maximum velocity is found in the middle of the box $y=h/2$
   \label{eq:poiseuille_stationary}
   u_{max} = \frac{(P_A-P_B)}{8\mu L}h^2.
 \end{align}
+
 \subsection{Starting Couette flow}
+\label{sec:couette}
 We use the same canal as in the Hagen-Poiseuille flow, but we remove the pressure gradient, $\partial_x p=0$. At $t=0$, the velocity field is zero, $\vec u = \vec 0$. Suddenly, at $t>0$, the lower wall (at $y=0$) accelerates instantly to a velocity $U$, applying a friction force on the fluid.
 \subsubsection{Steady state solution}
 Again, the fluid only moves in the $x$-direction. We seek the steady state, $\partial_t u=0$ and remember that the pressure gradient is zero. The NSE takes the form
@@ -303,6 +306,7 @@ where the fourier coefficients are given as
 \end{align*}
 The full solution for $u$ is
 \begin{align}
+\label{eq:couette_full}
   \frac{u(y,t)}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(\frac{-n^2\pi^2 \nu t}{h^2}\right)
 \end{align}
 \section{Numerical solution of the incompressible equation}
@@ -480,7 +484,7 @@ note how close they are to the mathematical formulation. This is the key concept
 
 \section{Verification and results}
 \subsection{2 dimensional Hagen-Poiseuille flow}
-Our adjustable parameters are
+We simulate the 2 dimensional Hagen-Poiseuille flow as described in section \ref{sec:hagenpoiseuille} with different properties. The adjustable parameters are
 \begin{itemize}
 \item $\Delta t$ - time step
 \item $\Delta P$ - pressure difference
@@ -488,23 +492,55 @@ Our adjustable parameters are
 \item $L$ - distance between $A$ and $B$ in pressure difference
 \item $d$ - box height
 \end{itemize}
-We use a uniform mesh, a rectangle, of size $L\times d$ with 10 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in \ref{ap:a}. We let FEniCS run until we reach a steady state and compare the maximum thermal velocity to the theoretical max given by \eqref{eq:max_vel}. The results can be found in table \ref{tab:res_hagen_poiseuille}. Note that the different parameters carry units, but we will for simplicity only look at the numerical values.
-
+We use a uniform mesh, a rectangle, of size $L\times d$ with 50 elements in each direction. A FEniCS implementation of the Hagen-Poiseuille flow can be found in \ref{ap:a}. We let FEniCS run until we reach a steady state and compare the velocity profile to the theoretical parabola given in \eqref{eq:poiseuille_stationary_full}
+\begin{align*}
+  u(y) = \frac{(P_A-P_B)}{2\mu L}y(h-y).
+\end{align*}
+The results can be found in table \ref{tab:res_hagen_poiseuille} with the error defined as
+\begin{align*}
+  \epsilon = \max(|u_e - u_{0,j}| : j \in \{0,1,...,N_y - 1\}),
+\end{align*}
+where we have used $i=0$ since the system is fully translational symmetric in the $x$-direction.
 \begin{table}[h!]
   \begin{center}
-    \begin{tabular}[width=4in]{|c|c|c|c|c|c|c|c|}
+    \begin{tabular}[width=4in]{|c|c|c|c|c|c|c|}
       \hline
-      \# & $\Delta p$ & $\mu$ & $L$ & $h$ & Analytical & FEniCS & Error\\ \hline
-      1 & 1 & 1 & 1 & 1 & 0.125 & 0.125 & 0.000\\
-      2 & 2 & 1 & 1 & 1 & 0.250 & 0.250 & 0.000\\
-      3 & 1 & 1 & 1 & 2 & 0.500 & 0.500 & 0.000\\
+      \# & $\Delta t$ & $\Delta p$ & $\mu$ & $L$ & $h$ & $\epsilon$\\ \hline
+      1 & 0.01 & 1.0 & 1.0 & 1.0 & 1.0 & 4.1E-7\\
+      2 & 0.01 & 1.0 & 1.0 & 1.0 & 2.0 & 5.7E-7\\
+      3 & 0.01 & 2.0 & 2.0 & 2.0 & 2.0 & 1.9E-7\\
       \hline
     \end{tabular}
   \caption{Comparison of the analytical and the numerical solution of the pressure driven stationary system.}
   \label{tab:res_hagen_poiseuille}
   \end{center}
 \end{table}
-
+\subsection{Starting Couette flow}
+We now run the Starting Couette flow and compare with the analytical solution given in \eqref{eq:couette_full}
+\begin{align*}
+  \frac{u(y,t)}{U} = \left(1 - \frac{y}{h}\right) - \frac{2}{\pi}\sum_{n=1}^\infty \frac{1}{n} \sin\left(\frac{n\pi y}{h}\right)\exp\left(\frac{-n^2\pi^2 \nu t}{h^2}\right),
+\end{align*}
+where we in the calculation of the fouerier sum truncate at $n=500$. The error is measured at a time $t$ in order to test non stationary solutions and convergence rate.
+\begin{table}[h!]
+  \begin{center}
+    \begin{tabular}[width=4in]{|c|c|c|c|c|c|c|c|}
+      \hline
+      \# & $\Delta t$ & $t$  & $U$  & $\mu$ & $L$ & $h$ & $\epsilon$\\ \hline
+      1  & 1E-2       & 0.02 & 1.0  & 1.0   & 1.0 & 1.0 & 1.0E-2\\
+      2  & 1E-3       & 0.02 & 1.0  & 1.0   & 1.0 & 1.0 & 6.0E-3\\
+      3  & 1E-4       & 0.02 & 1.0  & 1.0   & 1.0 & 1.0 & 8.0E-4\\
+      4  & 1E-2       & 3.0*  & 1.0  & 1.0   & 1.0 & 1.0 & 2.0E-7\\
+      5  & 1E-2       & 3.0*  & 2.0  & 2.0   & 2.0 & 2.0 & 2.0E-7\\
+      6  & 1E-2       & 4.0  & 2.0  & 1E-1  & 2.0 & 2.0 & 6.0E-4\\
+      7  & 1E-2       & 50.0*  & 2.0  & 1E-1  & 2.0 & 2.0 & 9.0E-6\\
+      \hline
+    \end{tabular}
+  \caption{Comparison of the analytical and the numerical solution of the Couette flow. * means that the system reached a steady state.}
+  \label{tab:res_couette}
+  \end{center}
+\end{table}
+\section{Conclusion}
+The finite element method works quite well for these two systems. The convergence rate was rather slow in the low viscosity couette flow case where the program needed 5000 timesteps before reaching a stationary error. We also noticed the large errors for low $t$, that decreased for smaller timesteps. This is explained by the theoretical discontinuity at $t=0$ where the derivatives become very large. I tested with different resolution in the spatial domain with negligible changes in the error. 
 \begin{appendices}
   \gdef\thesection{Appendix \Alph{section}}
   \section{Starting Couette flow}

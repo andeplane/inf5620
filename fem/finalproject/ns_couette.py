@@ -5,18 +5,18 @@ from dolfin import *
 import numpy as np
 
 # Set parameter values
-dt = 0.01 # Timestep
-nu = 1.0 # Kinematic viscosity
-rho = 1.0    # Density
-Lx = 1
-Ly = 1
-Nx = 10
-Ny = 10
+rho = 1.0   # Assumed to 1.0, not included in the calculations
+dt = 0.01   # Timestep
+nu = 1.0    # Kinematic viscosity
+Lx = 1.0    # Canal length (x)
+Ly = 1.0    # Canal length (y)
+Nx = 25     # Quadratic elements (x)
+Ny = 25     # Quadratic elements (y)
 
-Vx0 = 1
-Vy0 = 0
-Vx1 = 0
-Vy1 = 0
+Vx0 = 1     # v(x,0).x
+Vy0 = 0     # v(x,0).y
+Vx1 = 0     # v(x,Ly).x
+Vy1 = 0     # v(x,Ly).y
 
 mesh = Rectangle(0,0,Lx,Ly,Nx,Ny,'left')
 
@@ -76,10 +76,10 @@ U = 0.5*(u0 + u)
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-    + nu*inner(grad(U), grad(v))*dx \
+    + nu*inner(nabla_grad(U), nabla_grad(v))*dx \
     - p0*div(v)*dx\
     - inner(f, v)*dx\
-    + inner(grad(u0)*u0, v)*dx \
+    + inner(dot(u0,nabla_grad(u0)), v)*dx \
     + inner(p0*n,v)*ds\
     
 a1 = lhs(F1)
@@ -107,17 +107,17 @@ def step():
     # Compute tentative velocity step
     b1 = assemble(L1)
     [bc.apply(A1, b1) for bc in bcu]
-    solve(A1, u1.vector(), b1, "gmres", "hypre_euclid")
+    solve(A1, u1.vector(), b1, "gmres", "amg")
     
     # Pressure correction
     b2 = assemble(L2)
     [bc.apply(A2, b2) for bc in bcp]
-    solve(A2, p1.vector(), b2, "gmres", "hypre_euclid")
+    solve(A2, p1.vector(), b2, "gmres", "amg")
 
     # Velocity correction
     b3 = assemble(L3)
     [bc.apply(A3, b3) for bc in bcu]
-    solve(A3, u1.vector(), b3, "gmres", "hypre_euclid")
+    solve(A3, u1.vector(), b3, "gmres", "amg")
 
     # Move to next time step
     u0.assign(u1)

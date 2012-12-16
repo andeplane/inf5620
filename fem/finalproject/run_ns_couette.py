@@ -23,7 +23,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 line, = ax.plot([], [], lw=2)
 ax.set_ylim(0, Vx0)
-ax.set_xlim(0, 1)
+ax.set_xlim(0, 2)
 ax.grid()
 
 T = 4
@@ -46,11 +46,15 @@ def run(data):
 		y0 = coor[n][1]
 		v[i,j,0] = u_array[n]
 		v[i,j,1] = u_array[n+mesh.num_vertices()]
-		k = np.linspace(1,50,50)
-		vx_e = Vx0*(1 - y0 - np.sum(2.0/(k*np.pi)*np.sin(k*np.pi*y0)*np.exp(-k**2*np.pi**2*t/nu)))
+		k = np.linspace(1,500,500)
+		vx_e = Vx0*(1 - y0/Ly - np.sum(2.0/(k*np.pi)*np.sin(k*np.pi*y0/Ly)*np.exp(-k**2*np.pi**2*t*nu/Ly**2)))
 		v_e[i,j,0] = vx_e
 		v_e[i,j,1] = 0
 		error = abs(u_array[n] - vx_e)
+		if(error > 0.9):
+			print "y0:",y0
+			print "u_array[n]:",u_array[n]
+			print "vx_e:",vx_e
 		if error > max_error: max_error = error
 		avg_error += error
 	avg_error/=mesh.num_vertices()
@@ -58,6 +62,7 @@ def run(data):
 
 	print "t=%g, max error=%g" %(t,max_error)
 	line.set_data(y, v[0,:,0])
+	#line.set_data(y, error[0,:,0])
 	return line,
 
 ani = animation.FuncAnimation(fig, run, None, blit=False, interval=1,
