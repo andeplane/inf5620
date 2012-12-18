@@ -10,8 +10,8 @@ dt = 0.01   # Timestep
 nu = 1.0    # Kinematic viscosity
 Lx = 1.0    # Canal length (x)
 Ly = 1.0    # Canal length (y)
-Nx = 25     # Quadratic elements (x)
-Ny = 25     # Quadratic elements (y)
+Nx = 20     # Quadratic elements (x)
+Ny = 20     # Quadratic elements (y)
 
 Vx0 = 1     # v(x,0).x
 Vy0 = 0     # v(x,0).y
