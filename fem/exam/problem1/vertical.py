@@ -3,13 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-case = [[0.001,1.0], [0,1,3]]   # RK best, small time step
-#case = [[0.4,15], [0,1,3]]   # BE best, large time step
-#case = [[0.1,3], [0,1,2,3]]   # Runge kutta good, BE worst
-#case = [[1.0,3], [0,1,3]]   # Runge kutta problems
-#case = [[1.0,10], [0,1,3]]  # Runge kutta problems 2
-#case = [[0.5,20], [1,2,3]]  # FE bye bye
-#case = [[0.6,5], [1,3]]  # FE bye bye
+case = [[0.01,1], [1,2,3]]      # Normal solution
+#case = [[0.5,20], [1,2,3]]      # FE bye bye
+#case = [[0.2,1], [1,2,3]]       # FE oscillate
+#case = [[0.6,5], [1,3]]         # CN oscillate
+#case = [[1.0,5], [1,3]]         # large timestep
+#case = [[0.001,1], [1,2,3]]     # small timestep
+
+#case = [[0.001,1.0], [0,1,3]]   # RK best, small time step
+#case = [[0.4,15], [0,1,3]]      # BE best, large time step, BE error=0
+#case = [[0.1,3], [0,1,2,3]]     # Runge kutta good, BE worst
+#case = [[1.0,10], [0,1,3]]      # Runge kutta problems
+
+
 
 solver_indices = case[1]
 dt = case[0][0]

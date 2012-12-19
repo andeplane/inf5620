@@ -100,7 +100,6 @@ def plot_u(u, x, t, n):
     else:
         time.sleep(0.2)
 
-
 L = 1
 a = 1
 
@@ -119,6 +118,7 @@ T = 3
 #theta = float(sys.argv[3])
 
 cases = [(15, 0.5, 1, 0.12), (7, 5, 0.5, 3), (15, 0.5, 0, 0.25)]
+
 for Nx, C, theta, T in cases:
     print 'theta=%g, C=%g, Nx=%d' % (theta, C, Nx)
     u, x, t, cpu = solver(I, a, L, Nx, C, T,
