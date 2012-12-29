@@ -8,9 +8,12 @@ import sys                        # For determining the Python version.
 import matplotlib.patches as mpatches
 
 t0 = 0.0
-T = 10000.0
-dt = 0.2
-dx = 0.4
+T = 500.0
+dx = 0.05
+dt = 0.4
+#dt = dx/c
+c = dx/dt
+
 Nt = int((T-t0)/dt)
 x0 = -20.
 x1 = 20.
@@ -29,9 +32,11 @@ sigma = 2.0
 xinit = [(abs(x[i])<5)*1.0 for i in range(len(x))]
 
 def factor(x,t):
-    factor = np.logical_and((x-x0)/(x1-x0) >= 2./3.,((x-x0)/(x1-x0) <= 4./5.))*0.1 + \
-        np.logical_or((x-x0)/(x1-x0) <= 2./3., (x-x0)/(x1-x0)>= 4./5.)*0.1
+    factor = np.logical_and((x-x0)/(x1-x0) >= 2./3.,((x-x0)/(x1-x0) <= 4./5.))*c + \
+        np.logical_or((x-x0)/(x1-x0) <= 2./3., (x-x0)/(x1-x0)>= 4./5.)*c
     return factor*factor*dt*dt/(dx*dx)
+
+print factor(0.2,0.1)
 
 #first step
 for i in range(1,Nx-1):
@@ -58,7 +63,7 @@ q1 = mpatches.Rectangle(xy, width, height, facecolor='yellow', edgecolor='yellow
 xy = np.array([x0+2./3.*(x1-x0),-1.3])
 height = 2.6*(x1-x0)
 width = (4./5.-2./3.)*(x1-x0)
-q2 = mpatches.Rectangle(xy, width, height, facecolor='cyan', edgecolor='cyan')
+q2 = mpatches.Rectangle(xy, width, height, facecolor='yellow', edgecolor='yellow')
 
 #finally from 4/5 to 1
 xy = np.array([x0+4./5.*(x1-x0),-1.3])

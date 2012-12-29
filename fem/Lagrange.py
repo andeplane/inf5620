@@ -15,6 +15,10 @@ def Lagrange_polynomial(x, i, points):
         if k != i:
             p *= (x - points[k])/(points[i] - points[k])
     return p
+    
+
+
+    
 
 def Lagrange_polynomials_01(x, N):
     """

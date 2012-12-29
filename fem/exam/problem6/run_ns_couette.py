@@ -24,8 +24,8 @@ for l in range(Ny):
 fig = plt.figure()
 ax = fig.add_subplot(111)
 line, = ax.plot([], [], lw=2)
-ax.set_ylim(0, 0.01)
-ax.set_xlim(0, 2)
+ax.set_ylim(0, Vx0)
+ax.set_xlim(0, 1)
 ax.grid()
 
 T = 4
@@ -70,7 +70,8 @@ def run(data):
 	error = v_e - v
 	print "p_max=",p.max()
 	print "t=%g, max error=%g" %(t,max_error)
-	line.set_data(y, p[:,0,0])
+	#line.set_data(y, p[:,0,0])
+	line.set_data(y, v[0,:,0])
 	#line.set_data(y, error[0,:,0])
 	return line,
 
